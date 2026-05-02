@@ -8,6 +8,7 @@ export function useTelegram() {
     try { tg.ready?.() } catch {}
     try { tg.expand?.() } catch {}
     try { tg.requestFullscreen?.() } catch {}
+    try { tg.enableClosingConfirmation?.() } catch {}
   }, [])
 
   const isDark = tg.colorScheme === 'dark'
