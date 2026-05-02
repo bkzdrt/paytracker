@@ -3,7 +3,7 @@ import { useState } from 'react'
 const CURRENCIES = ['KRW', 'RUB', 'USD', 'EUR', 'KZT', 'UZS']
 
 export default function Onboarding({ defaultCurrency, onStart, t }) {
-  const [rate, setRate] = useState('')
+  const [rate, setRate] = useState('0')
   const [currency, setCurrency] = useState(defaultCurrency)
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false)
 

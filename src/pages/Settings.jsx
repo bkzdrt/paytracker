@@ -2,12 +2,44 @@ import { useState } from 'react'
 import { exportCSV } from '../utils/export'
 import { todayStr } from '../utils/dates'
 import { DAY_TYPES } from '../utils/calculations'
+import WebApp from '@twa-dev/sdk'
+
+// TODO: заменить на реальный URL инвойса от бота
+const STARS_INVOICE_URL = 'YOUR_INVOICE_URL'
+
+// TON network wallet
+const CRYPTO_WALLET = 'UQCWSZkplJiZ-UHwOsUwwcNypYEFS3Gq2_ws2tiLwjEN0wCZ'
+
+const FEEDBACK_URL = 'https://t.me/bekzodart'
 
 const CURRENCIES = ['KRW', 'RUB', 'USD', 'EUR', 'KZT', 'UZS']
 
 export default function Settings({ settings, setSettings, days, months, t, lang, haptic, clearYear }) {
   const currentYear = parseInt(todayStr().slice(0, 4))
   const [newYear, setNewYear] = useState('')
+  const [rateStrings, setRateStrings] = useState({})
+
+  // Always show at least the current year row
+  const ratesDisplay = Object.keys(settings.rates).length > 0
+    ? settings.rates
+    : { [String(currentYear)]: 0 }
+
+  function getRateDisplay(year, rate) {
+    return year in rateStrings ? rateStrings[year] : String(rate)
+  }
+
+  function handleRateChange(year, val) {
+    if (!/^\d*\.?\d{0,6}$/.test(val)) return
+    setRateStrings(s => ({ ...s, [year]: val }))
+    const parsed = parseFloat(val)
+    if (!isNaN(parsed)) updateRate(year, String(parsed))
+  }
+
+  function handleRateBlur(year, val) {
+    const parsed = parseFloat(val) || 0
+    updateRate(year, String(parsed))
+    setRateStrings(s => ({ ...s, [year]: String(parsed) }))
+  }
 
   const bonusMonths = settings.allowances.bonusMonths || [3, 6, 9, 12]
   const todayMonth = new Date().getMonth() + 1
@@ -44,6 +76,22 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
     })
   }
 
+  function updateNightShift(key, val) {
+    if (!/^\d*\.?\d{0,4}$/.test(val)) return
+    const parsed = parseFloat(val)
+    if (!isNaN(parsed)) {
+      setSettings(s => ({ ...s, nightShift: { ...(s.nightShift || {}), [key]: parsed } }))
+    }
+  }
+
+  function updateHolidayRate(key, val) {
+    if (!/^\d*\.?\d{0,4}$/.test(val)) return
+    const parsed = parseFloat(val)
+    if (!isNaN(parsed)) {
+      setSettings(s => ({ ...s, holidayRates: { ...s.holidayRates, [key]: parsed } }))
+    }
+  }
+
   function updateTemplate(dow, field, val) {
     setSettings(s => ({
       ...s,
@@ -62,15 +110,15 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
     <div className="page page--settings">
       <div className="settings-section">
         <div className="settings-section__title section-label">{t.settings.rates}</div>
-        {Object.entries(settings.rates).sort(([a],[b]) => a-b).map(([year, rate]) => (
+        {Object.entries(ratesDisplay).sort(([a],[b]) => a-b).map(([year, rate]) => (
           <div key={year} className={`settings-row${String(year)===String(currentYear)?' settings-row--current':''}`}>
             <span className="settings-row__label">{year}</span>
             <input
               className="settings-input settings-input--rate"
-              type="number"
-              value={rate}
-              onChange={e => updateRate(year, e.target.value)}
-              step="0.000001"
+              type="text"
+              value={getRateDisplay(year, rate)}
+              onChange={e => handleRateChange(year, e.target.value)}
+              onBlur={e => handleRateBlur(year, e.target.value)}
               inputMode="decimal"
             />
           </div>
@@ -188,17 +236,83 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
       </div>
 
       <div className="settings-section">
+        <div className="settings-section__title section-label">{t.settings.nightShift}</div>
+        {[
+          { key: 'bonusMultiplier', label: t.settings.nightBonusMultiplier, hint: t.settings.nightBonusHint },
+          { key: 'bonusHours',      label: t.settings.nightBonusHours,      hint: null },
+        ].map(({ key, label, hint }) => (
+          <div key={key} className="settings-row">
+            <div className="settings-row__label-stack">
+              <span>{label}</span>
+              {hint && <span className="settings-row__hint">{hint}</span>}
+            </div>
+            <input
+              className="settings-input settings-input--rate"
+              type="text"
+              value={settings.nightShift?.[key] ?? (key === 'bonusMultiplier' ? 0.5 : 7.5)}
+              onChange={e => updateNightShift(key, e.target.value)}
+              inputMode="decimal"
+            />
+          </div>
+        ))}
+        <div className="settings-row settings-row--info">
+          <span className="settings-value--muted">
+            {`Надбавка = ставка × ${settings.nightShift?.bonusMultiplier ?? 0.5} × ${settings.nightShift?.bonusHours ?? 7.5}`}
+          </span>
+        </div>
+        <div className="settings-row">
+          <div className="settings-row__label-stack">
+            <span>{t.settings.nightOvertimeMultiplier}</span>
+            <span className="settings-row__hint">{t.settings.nightOvertimeHint}</span>
+          </div>
+          <input
+            className="settings-input settings-input--rate"
+            type="text"
+            value={settings.nightShift?.overtimeMultiplier ?? 2.0}
+            onChange={e => updateNightShift('overtimeMultiplier', e.target.value)}
+            inputMode="decimal"
+          />
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <div className="settings-section__title section-label">{t.settings.holidayRates}</div>
+        {[
+          { key: 'weekdayBase',     label: t.settings.holidayWeekdayBase },
+          { key: 'weekdayOvertime', label: t.settings.holidayWeekdayOT },
+          { key: 'weekendBase',     label: t.settings.holidayWeekendBase },
+          { key: 'weekendOvertime', label: t.settings.holidayWeekendOT },
+        ].map(({ key, label }) => (
+          <div key={key} className="settings-row">
+            <span className="settings-row__label">{label}</span>
+            <input
+              className="settings-input settings-input--rate"
+              type="text"
+              value={settings.holidayRates?.[key] ?? ''}
+              onChange={e => updateHolidayRate(key, e.target.value)}
+              inputMode="decimal"
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="settings-section">
         <div className="settings-section__title section-label">{t.settings.currency}</div>
         <div className="currency-row">
           {CURRENCIES.map(c => (
             <button
               key={c}
               className={`chip${settings.currency===c?' chip--active':''}`}
-              onClick={() => setSettings(s => ({ ...s, currency: c }))}
+              onClick={() => setSettings(s => ({ ...s, currency: c, laborLaw: c === 'KRW' ? 'KR' : 'default' }))}
             >
               {c}
             </button>
           ))}
+        </div>
+        <div className="settings-row settings-row--info">
+          <span className="settings-value--muted">
+            {settings.currency === 'KRW' ? t.settings.laborLawKR : t.settings.laborLawDefault}
+          </span>
         </div>
       </div>
 
@@ -212,6 +326,68 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
           const msg = t.settings.confirmClear.replace('{year}', currentYear)
           if (window.confirm(msg)) clearYear(currentYear)
         }}>{t.settings.clearAll}</button>
+      </div>
+
+      <div className="support-divider" />
+
+      <div className="settings-section">
+        <div className="settings-section__title section-label">{t.support.title}</div>
+
+        <div className="stars-grid">
+          {[50, 100, 200, 500].map(amount => (
+            <button
+              key={amount}
+              className="btn-stars"
+              onClick={() => {
+                try {
+                  WebApp.openTelegramLink(`https://t.me/PayTrackDonatebot?start=donate_${amount}`)
+                } catch {
+                  window.open(`https://t.me/PayTrackDonatebot?start=donate_${amount}`, '_blank')
+                }
+              }}
+            >
+              ★ {amount}
+            </button>
+          ))}
+        </div>
+
+        <div className="support-wallet-row" onClick={() => {
+          const copy = (text) => {
+            if (navigator.clipboard?.writeText) {
+              navigator.clipboard.writeText(text).catch(() => fallbackCopy(text))
+            } else {
+              fallbackCopy(text)
+            }
+          }
+          const fallbackCopy = (text) => {
+            const el = document.createElement('textarea')
+            el.value = text
+            el.style.cssText = 'position:fixed;opacity:0'
+            document.body.appendChild(el)
+            el.select()
+            document.execCommand('copy')
+            document.body.removeChild(el)
+          }
+          copy(CRYPTO_WALLET)
+          haptic.success()
+          try { WebApp.showAlert(t.support.cryptoCopied) } catch {}
+        }}>
+          <span className="support-wallet-label">{t.support.crypto}</span>
+          <span className="support-wallet-address">{CRYPTO_WALLET}</span>
+        </div>
+
+        <div className="support-feedback">
+          <button
+            className="btn-secondary"
+            style={{ width: '100%' }}
+            onClick={() => {
+              try { WebApp.openTelegramLink(FEEDBACK_URL) } catch { window.open(FEEDBACK_URL, '_blank') }
+            }}
+          >
+            {t.support.feedback}
+          </button>
+          <span className="support-feedback-hint">{t.support.feedbackHint}</span>
+        </div>
       </div>
     </div>
   )

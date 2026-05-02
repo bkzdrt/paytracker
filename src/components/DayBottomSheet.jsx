@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { calcDayGross, DAY_TYPES } from '../utils/calculations'
 
-export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onDelete, onClose, onNavigate, t, lang, formatMoney, haptic, getDefaultForDate }) {
+export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onDelete, onClose, t, lang, formatMoney, haptic, getDefaultForDate }) {
   const year = parseInt(dateStr.slice(0, 4))
   const rate = settings.rates[String(year)] || 13589
 
@@ -11,8 +11,15 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
   const [note, setNote] = useState(dayData?.note || '')
   const [bonusDeduction, setBonusDeduction] = useState(dayData?.bonusDeduction ?? 0)
   const [showBonusInput, setShowBonusInput] = useState((dayData?.bonusDeduction ?? 0) > 0)
+  const [isHoliday, setIsHoliday] = useState(dayData?.isHoliday ?? false)
+  const [casualAmount, setCasualAmount] = useState(
+    dayData?.type === 'разовая' ? String(dayData.gross || '') : ''
+  )
 
-  const gross = type ? calcDayGross(type, overtime, rate, dateStr, type === '결근' ? bonusDeduction : 0) : 0
+  const isCasual = type === 'разовая'
+  const gross = isCasual
+    ? (parseFloat(casualAmount) || 0)
+    : (type ? calcDayGross(type, overtime, rate, dateStr, type === '결근' ? bonusDeduction : 0, isHoliday, settings.holidayRates, settings.nightShift) : 0)
 
   const date = new Date(dateStr)
   const dow = date.getDay()
@@ -26,26 +33,24 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
   const sheetRef = useRef(null)
 
   const handleTouchStart = useCallback((e) => {
-    touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    touchRef.current = e.touches[0].clientY
   }, [])
 
   const handleTouchEnd = useCallback((e) => {
-    if (!touchRef.current) return
-    const dx = e.changedTouches[0].clientX - touchRef.current.x
-    const dy = e.changedTouches[0].clientY - touchRef.current.y
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      haptic.selection()
-      onNavigate(dx < 0 ? 1 : -1)
-    } else if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
-      onClose()
-    }
+    if (touchRef.current === null) return
+    const dy = e.changedTouches[0].clientY - touchRef.current
+    if (dy > 80) onClose()
     touchRef.current = null
-  }, [onNavigate, onClose, haptic])
+  }, [onClose])
 
   function handleSave() {
     if (!type) return
     haptic.medium()
-    onSave(dateStr, { type, overtime, gross, note, bonusDeduction: type === '결근' && bonusDeduction > 0 ? bonusDeduction : undefined })
+    onSave(dateStr, {
+      type, overtime, gross, note,
+      bonusDeduction: type === '결근' && bonusDeduction > 0 ? bonusDeduction : undefined,
+      isHoliday: isHoliday || undefined,
+    })
     onClose()
   }
 
@@ -56,7 +61,7 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
     }
   }
 
-  const showOvertime = type && type !== '쉬는 날' && type !== '연차' && type !== '결근'
+  const showOvertime = type && type !== '쉬는 날' && type !== '연차' && type !== '결근' && type !== 'разовая'
 
   return (
     <div className="sheet-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -68,12 +73,10 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
       >
         <div className="bottom-sheet__handle" />
         <div className="bottom-sheet__header">
-          <button className="sheet-nav-btn" onClick={() => { haptic.selection(); onNavigate(-1) }}>&#8249;</button>
           <div className="bottom-sheet__date">
             <span className="bottom-sheet__weekday">{weekdayLong}</span>
             <span className="bottom-sheet__day">{monthStr}</span>
           </div>
-          <button className="sheet-nav-btn" onClick={() => { haptic.selection(); onNavigate(1) }}>&#8250;</button>
         </div>
 
         <div className="bottom-sheet__body">
@@ -89,8 +92,41 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
             ))}
           </div>
 
-          {isWeekend && (
+          {isWeekend && !isCasual && (
             <div className="weekend-rate-badge">{t.dayEditor.weekendRate}</div>
+          )}
+
+          {isCasual && (
+            <div className="casual-amount-row">
+              <span className="section-label">{t.dayEditor.casualAmount}</span>
+              <input
+                className="settings-input"
+                type="text"
+                inputMode="decimal"
+                value={casualAmount}
+                onChange={e => { if (/^\d*\.?\d*$/.test(e.target.value)) setCasualAmount(e.target.value) }}
+                placeholder="0"
+                autoFocus
+              />
+            </div>
+          )}
+
+          {!isCasual && type && type !== '결근' && (
+            <div className="toggle-row">
+              <span className="toggle-row__label">{t.dayEditor.isHoliday}</span>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={isHoliday}
+                  onChange={e => { haptic.light(); setIsHoliday(e.target.checked) }}
+                />
+                <span className="toggle__slider" />
+              </label>
+            </div>
+          )}
+
+          {isHoliday && type === '쉬는 날' && (
+            <div className="paid-holiday-notice">{t.dayEditor.paidHoliday}</div>
           )}
 
           {showOvertime && (
@@ -106,7 +142,7 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
             </div>
           )}
 
-          {type === '결근' && !showBonusInput && (
+          {!isCasual && type === '결근' && !showBonusInput && (
             <button
               className="deduct-bonus-btn"
               onClick={() => { haptic.light(); setShowBonusInput(true) }}
@@ -114,7 +150,7 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
               − {t.dayEditor.deductBonus}
             </button>
           )}
-          {type === '결근' && showBonusInput && (
+          {!isCasual && type === '결근' && showBonusInput && (
             <div className="deduct-bonus-row">
               <span className="deduct-bonus-row__label">{t.dayEditor.deductBonus}</span>
               <input
@@ -133,7 +169,7 @@ export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onD
             </div>
           )}
 
-          {type && (
+          {type && !isCasual && (
             <div className="gross-display">
               <span className="section-label">{t.dayEditor.gross}</span>
               <span className={`gross-display__amount${gross < 0 ? ' gross-display__amount--negative' : ''}`}>{formatMoney(gross)}</span>

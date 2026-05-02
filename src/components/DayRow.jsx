@@ -17,7 +17,7 @@ export default function DayRow({ dateStr, dayData, t, lang, formatMoney, onClick
   let cls = 'day-row'
   if (weekend) cls += ' day-row--weekend'
   if (today) cls += ' day-row--today'
-  if (future) cls += ' day-row--future'
+  if (future && !filled) cls += ' day-row--future'
 
   const typeLabel = dayData ? (t.dayTypes[dayData.type] || dayData.type) : ''
 
@@ -30,14 +30,14 @@ export default function DayRow({ dateStr, dayData, t, lang, formatMoney, onClick
       </div>
       <div className="day-row__center">
         {dayData && (
-          <span className={`day-row__type-badge${dayData.type === '결근' ? ' day-row__type-badge--negative' : ''}`}>
+          <span className={`day-row__type-badge${dayData.type === '결근' ? ' day-row__type-badge--negative' : dayData.type === 'разовая' ? ' day-row__type-badge--casual' : dayData.isHoliday ? ' day-row__type-badge--holiday' : ''}`}>
             {typeLabel}
           </span>
         )}
         {dayData?.note && <span className="day-row__note">{dayData.note}</span>}
       </div>
       <div className="day-row__right">
-        {filled && !future && (
+        {filled && (
           <>
             <span className={`day-row__gross${dayData.gross < 0 ? ' day-row__gross--negative' : ''}`}>{formatMoney(dayData.gross)}</span>
             {dayData.overtime > 0 && (

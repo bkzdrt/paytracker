@@ -7,6 +7,7 @@ export function useTelegram() {
   useEffect(() => {
     try { tg.ready?.() } catch {}
     try { tg.expand?.() } catch {}
+    try { tg.requestFullscreen?.() } catch {}
   }, [])
 
   const isDark = tg.colorScheme === 'dark'

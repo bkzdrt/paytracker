@@ -11,7 +11,7 @@ import Onboarding from './components/Onboarding'
 import NewYearPrompt from './components/NewYearPrompt'
 
 export default function App() {
-  const { settings, days, months, setSettings, setDay, deleteDay, setMonth, initSettings, clearYear, DEFAULT_SETTINGS } = useStorage()
+  const { loading, settings, days, months, setSettings, setDay, deleteDay, setMonth, initSettings, clearYear, DEFAULT_SETTINGS } = useStorage()
   const { isDark, langCode, haptic } = useTelegram()
   const { t, lang } = useLocale(langCode)
   const [tab, setTab] = useState('home')
@@ -44,6 +44,10 @@ export default function App() {
     if (langCode?.startsWith('ko')) return 'KRW'
     if (langCode?.startsWith('ru')) return 'RUB'
     return 'KRW'
+  }
+
+  if (loading) {
+    return <div className="loading-screen" />
   }
 
   if (!settings) {

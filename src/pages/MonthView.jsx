@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { calcMonthGross, bonusForMonth, getMonthDays } from '../utils/calculations'
+import { calcMonthGross, bonusForMonth, getMonthDays, calcMonthBreakdownKR, isKRMode } from '../utils/calculations'
 import { todayStr } from '../utils/dates'
 import MonthHeader from '../components/MonthHeader'
 import DayRow from '../components/DayRow'
@@ -14,17 +14,26 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
   const [sheetDate, setSheetDate] = useState(null)
   const [editingNet, setEditingNet] = useState(false)
   const [netInput, setNetInput] = useState('')
+  const [footerExpanded, setFooterExpanded] = useState(false)
 
   const monthKey = `${currentYear}-${String(viewMonth).padStart(2, '0')}`
   const monthDayKeys = getMonthDays(currentYear, viewMonth)
   const monthDaysData = Object.fromEntries(monthDayKeys.map(k => [k, days[k]]).filter(([, v]) => v))
 
-  const bonusLineAmount = settings ? bonusForMonth(settings.allowances, viewMonth) : 0
+  const isKR = isKRMode(settings)
+  const rate = settings?.rates[String(currentYear)] || 13589
+  const bonusLineAmount = (!isKR && settings) ? bonusForMonth(settings.allowances, viewMonth) : 0
+
+  const breakdown = useMemo(() => {
+    if (!settings || !isKR) return null
+    return calcMonthBreakdownKR(monthDayKeys, days, rate, settings, viewMonth)
+  }, [monthDayKeys, days, rate, settings, viewMonth, isKR])
 
   const monthGross = useMemo(() => {
     if (!settings) return 0
+    if (isKR) return breakdown?.total ?? 0
     return calcMonthGross(monthDaysData, settings.allowances) + bonusForMonth(settings.allowances, viewMonth)
-  }, [monthDaysData, settings, viewMonth])
+  }, [monthDaysData, settings, viewMonth, isKR, breakdown])
 
   const monthNet = months[monthKey]?.net || null
 
@@ -33,13 +42,6 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
   }
   function nextMonth() {
     setViewMonth(m => m >= 12 ? 12 : m + 1)
-  }
-
-  function navigateSheet(dir) {
-    if (!sheetDate) return
-    const idx = monthDayKeys.indexOf(sheetDate)
-    const next = monthDayKeys[idx + dir]
-    if (next) setSheetDate(next)
   }
 
   function saveNet() {
@@ -76,39 +78,113 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
       </div>
 
       <div className="month-footer">
-        <div className="month-footer__row">
-          <span className="section-label">{t.month.gross}</span>
-          <span className="month-footer__amount">{formatMoney(monthGross)}</span>
-        </div>
-        {bonusLineAmount > 0 && (
-          <div className="month-footer__row">
-            <span className="section-label">{t.month.quarterBonus}</span>
-            <span className="month-footer__amount month-footer__amount--bonus">+{formatMoney(bonusLineAmount)}</span>
+        <div className="month-footer__summary" onClick={() => setFooterExpanded(x => !x)}>
+          <span className="month-footer__summary-label">{t.month.gross}</span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div className="month-footer__summary-amounts">
+              <span className="month-footer__summary-gross">{formatMoney(monthGross)}</span>
+              {monthNet && (
+                <span className="month-footer__summary-net">{t.month.net}: {formatMoney(monthNet)}</span>
+              )}
+            </div>
+            <span className={`month-footer__chevron${footerExpanded ? ' month-footer__chevron--up' : ''}`}>&#8964;</span>
           </div>
-        )}
-        <div className="month-footer__row" onClick={() => { setEditingNet(true); setNetInput(String(monthNet || '')) }}>
-          <span className="section-label">{t.month.net}</span>
-          {editingNet ? (
-            <input
-              className="net-input"
-              type="number"
-              value={netInput}
-              onChange={e => setNetInput(e.target.value)}
-              onBlur={saveNet}
-              onKeyDown={e => e.key === 'Enter' && saveNet()}
-              autoFocus
-              inputMode="numeric"
-            />
-          ) : (
-            <span className="month-footer__amount month-footer__amount--editable">
-              {monthNet ? formatMoney(monthNet) : <span className="text-muted">{t.month.enterNet}</span>}
-            </span>
-          )}
         </div>
-        {monthNet && (
-          <div className="month-footer__row">
-            <span className="section-label">{t.month.deductions}</span>
-            <span className="month-footer__amount month-footer__amount--deduction">{formatMoney(monthGross - monthNet)}</span>
+
+        {footerExpanded && (
+          <div className="month-footer__detail">
+            {isKR && breakdown ? (
+              <div className="breakdown-list">
+                <div className="breakdown-row">
+                  <span>{t.month.baseKR}</span>
+                  <span>{formatMoney(breakdown.base)}</span>
+                </div>
+                {breakdown.overtime > 0 && (
+                  <div className="breakdown-row">
+                    <span>{t.month.overtimePay}</span>
+                    <span>+{formatMoney(breakdown.overtime)}</span>
+                  </div>
+                )}
+                {breakdown.holiday > 0 && (
+                  <div className="breakdown-row">
+                    <span>{t.month.holidayPay}</span>
+                    <span>+{formatMoney(breakdown.holiday)}</span>
+                  </div>
+                )}
+                {breakdown.weekend > 0 && (
+                  <div className="breakdown-row">
+                    <span>{t.month.weekendPay}</span>
+                    <span>+{formatMoney(breakdown.weekend)}</span>
+                  </div>
+                )}
+                {breakdown.allowances > 0 && (
+                  <div className="breakdown-row">
+                    <span>{t.month.allowancesPay}</span>
+                    <span>+{formatMoney(breakdown.allowances)}</span>
+                  </div>
+                )}
+                {breakdown.bonus > 0 && (
+                  <div className="breakdown-row">
+                    <span>{t.month.quarterBonus}</span>
+                    <span className="breakdown-row__bonus">+{formatMoney(breakdown.bonus)}</span>
+                  </div>
+                )}
+                {breakdown.casual > 0 && (
+                  <div className="breakdown-row">
+                    <span>{t.dashboard.casualPay}</span>
+                    <span>+{formatMoney(breakdown.casual)}</span>
+                  </div>
+                )}
+                {breakdown.deductions > 0 && (
+                  <div className="breakdown-row">
+                    <span>{t.month.absences}</span>
+                    <span className="month-footer__amount--deduction">−{formatMoney(breakdown.deductions)}</span>
+                  </div>
+                )}
+                <div className="breakdown-row breakdown-row--total">
+                  <span>{t.month.gross}</span>
+                  <span>{formatMoney(breakdown.total)}</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="month-footer__row">
+                  <span className="section-label">{t.month.gross}</span>
+                  <span className="month-footer__amount">{formatMoney(monthGross)}</span>
+                </div>
+                {bonusLineAmount > 0 && (
+                  <div className="month-footer__row">
+                    <span className="section-label">{t.month.quarterBonus}</span>
+                    <span className="month-footer__amount month-footer__amount--bonus">+{formatMoney(bonusLineAmount)}</span>
+                  </div>
+                )}
+              </>
+            )}
+            <div className="month-footer__row" onClick={e => { e.stopPropagation(); setEditingNet(true); setNetInput(String(monthNet || '')) }}>
+              <span className="section-label">{t.month.net}</span>
+              {editingNet ? (
+                <input
+                  className="net-input"
+                  type="number"
+                  value={netInput}
+                  onChange={e => setNetInput(e.target.value)}
+                  onBlur={saveNet}
+                  onKeyDown={e => e.key === 'Enter' && saveNet()}
+                  autoFocus
+                  inputMode="numeric"
+                />
+              ) : (
+                <span className="month-footer__amount month-footer__amount--editable">
+                  {monthNet ? formatMoney(monthNet) : <span className="text-muted">{t.month.enterNet}</span>}
+                </span>
+              )}
+            </div>
+            {monthNet && (
+              <div className="month-footer__row">
+                <span className="section-label">{t.month.deductions}</span>
+                <span className="month-footer__amount month-footer__amount--deduction">{formatMoney(monthGross - monthNet)}</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -121,7 +197,7 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
           onSave={setDay}
           onDelete={deleteDay}
           onClose={() => setSheetDate(null)}
-          onNavigate={navigateSheet}
+
           t={t}
           lang={lang}
           formatMoney={formatMoney}
