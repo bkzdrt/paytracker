@@ -18,7 +18,7 @@ export default function Dashboard({ settings, days, months, setDay, deleteDay, t
   const [sheetDate, setSheetDate] = useState(null)
   const [statsMonth, setStatsMonth] = useState(currentMonth)
   const isKR = isKRMode(settings)
-  const rate = settings?.rates[String(currentYear)] || 13589
+  const rate = settings?.rates[String(currentYear)] || 0
 
   // Hero + chart + forecast — always current month
   const monthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`
@@ -68,7 +68,7 @@ export default function Dashboard({ settings, days, months, setDay, deleteDay, t
       if (days[k]?.type === '반차') return sum + 0.5
       return sum
     }, 0)
-  const vacationTotal = settings?.allowances?.vacationTotal ?? 15
+  const vacationTotal = settings?.allowances?.vacationTotal ?? 0
   const vacationRemaining = Math.max(0, vacationTotal - vacationUsedYTD)
 
   const todayLogged = !!days[today]

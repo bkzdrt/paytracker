@@ -21,7 +21,7 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
   const monthDaysData = Object.fromEntries(monthDayKeys.map(k => [k, days[k]]).filter(([, v]) => v))
 
   const isKR = isKRMode(settings)
-  const rate = settings?.rates[String(currentYear)] || 13589
+  const rate = settings?.rates[String(currentYear)] || 0
   const bonusLineAmount = (!isKR && settings) ? bonusForMonth(settings.allowances, viewMonth) : 0
 
   const breakdown = useMemo(() => {

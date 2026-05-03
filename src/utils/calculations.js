@@ -4,15 +4,15 @@ export function calcDayGross(type, overtime, rate, dateStr, bonusDeduction = 0, 
   const dow = new Date(dateStr).getDay()
   const isWeekend = dow === 0 || dow === 6
   const hr = {
-    weekdayBase:     holidayRates.weekdayBase     ?? 1.5,
-    weekdayOvertime: holidayRates.weekdayOvertime ?? 2.0,
-    weekendBase:     holidayRates.weekendBase     ?? 1.5,
-    weekendOvertime: holidayRates.weekendOvertime ?? 2.0,
+    weekdayBase:     holidayRates.weekdayBase     ?? 0,
+    weekdayOvertime: holidayRates.weekdayOvertime ?? 0,
+    weekendBase:     holidayRates.weekendBase     ?? 0,
+    weekendOvertime: holidayRates.weekendOvertime ?? 0,
   }
   const ns = {
-    bonusMultiplier:    nightShift.bonusMultiplier    ?? 0.5,
-    bonusHours:         nightShift.bonusHours         ?? 7.5,
-    overtimeMultiplier: nightShift.overtimeMultiplier ?? 2.0,
+    bonusMultiplier:    nightShift.bonusMultiplier    ?? 0,
+    bonusHours:         nightShift.bonusHours         ?? 0,
+    overtimeMultiplier: nightShift.overtimeMultiplier ?? 0,
   }
 
   let base = 0
@@ -101,15 +101,15 @@ export function calcDayExtras(type, overtime, rate, dateStr, bonusDeduction = 0,
   const dow = new Date(dateStr).getDay()
   const isWeekend = dow === 0 || dow === 6
   const hr = {
-    weekdayBase:     holidayRates.weekdayBase     ?? 1.5,
-    weekdayOvertime: holidayRates.weekdayOvertime ?? 2.0,
-    weekendBase:     holidayRates.weekendBase     ?? 1.5,
-    weekendOvertime: holidayRates.weekendOvertime ?? 2.0,
+    weekdayBase:     holidayRates.weekdayBase     ?? 0,
+    weekdayOvertime: holidayRates.weekdayOvertime ?? 0,
+    weekendBase:     holidayRates.weekendBase     ?? 0,
+    weekendOvertime: holidayRates.weekendOvertime ?? 0,
   }
   const ns = {
-    bonusMultiplier:    nightShift.bonusMultiplier    ?? 0.5,
-    bonusHours:         nightShift.bonusHours         ?? 7.5,
-    overtimeMultiplier: nightShift.overtimeMultiplier ?? 2.0,
+    bonusMultiplier:    nightShift.bonusMultiplier    ?? 0,
+    bonusHours:         nightShift.bonusHours         ?? 0,
+    overtimeMultiplier: nightShift.overtimeMultiplier ?? 0,
   }
 
   let overtimePay = 0, holidayPremium = 0, weekendPremium = 0, nightPremium = 0, deduction = 0
@@ -182,7 +182,7 @@ export function isKRMode(settings) {
 // Returns projected gross for current month
 export function calcProjected(days, monthDayKeys, settings, currentMonth) {
   const year = parseInt(monthDayKeys[0]?.slice(0, 4) || new Date().getFullYear())
-  const rate = settings.rates[String(year)] || 13589
+  const rate = settings.rates[String(year)] || 0
   const allowances = settings.allowances.job + settings.allowances.seniority
   const bonusAmount = bonusForMonth(settings.allowances, currentMonth)
 
@@ -210,8 +210,8 @@ export function calcProjected(days, monthDayKeys, settings, currentMonth) {
   const base = rate * 209
   const today = new Date().toISOString().slice(0, 10)
   const nsProj = settings.nightShift || {}
-  const nightBonusProj = rate * (nsProj.bonusMultiplier ?? 0.5) * (nsProj.bonusHours ?? 7.5)
-  const nightOTProj = nsProj.overtimeMultiplier ?? 2.0
+  const nightBonusProj = rate * (nsProj.bonusMultiplier ?? 0) * (nsProj.bonusHours ?? 0)
+  const nightOTProj = nsProj.overtimeMultiplier ?? 0
   let adjustment = 0
 
   monthDayKeys.filter(k => k <= today && days[k]).forEach(dateStr => {

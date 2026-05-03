@@ -3,7 +3,7 @@ import { calcDayGross, DAY_TYPES } from '../utils/calculations'
 
 export default function DayBottomSheet({ dateStr, dayData, settings, onSave, onDelete, onClose, t, lang, formatMoney, haptic, getDefaultForDate }) {
   const year = parseInt(dateStr.slice(0, 4))
-  const rate = settings.rates[String(year)] || 13589
+  const rate = settings.rates[String(year)] || 0
 
   const defaults = !dayData && getDefaultForDate ? getDefaultForDate(dateStr) : null
   const [type, setType] = useState(dayData?.type || defaults?.type || null)

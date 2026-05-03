@@ -19,10 +19,13 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
   const [newYear, setNewYear] = useState('')
   const [rateStrings, setRateStrings] = useState({})
 
-  // Always show at least the current year row
-  const ratesDisplay = Object.keys(settings.rates).length > 0
-    ? settings.rates
-    : { [String(currentYear)]: 0 }
+  // Show current year + any years > currentYear; past years hidden (still used in calculations)
+  const ratesDisplay = {
+    [String(currentYear)]: settings.rates[String(currentYear)] ?? 0,
+    ...Object.fromEntries(
+      Object.entries(settings.rates).filter(([y]) => parseInt(y) > currentYear)
+    ),
+  }
 
   function getRateDisplay(year, rate) {
     return year in rateStrings ? rateStrings[year] : String(rate)
@@ -183,7 +186,7 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
           <input
             className="settings-input"
             type="number"
-            value={settings.allowances.vacationTotal ?? 15}
+            value={settings.allowances.vacationTotal ?? 0}
             onChange={e => updateAllowance('vacationTotal', e.target.value)}
             inputMode="numeric"
           />
@@ -257,7 +260,7 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
         ))}
         <div className="settings-row settings-row--info">
           <span className="settings-value--muted">
-            {`Надбавка = ставка × ${settings.nightShift?.bonusMultiplier ?? 0.5} × ${settings.nightShift?.bonusHours ?? 7.5}`}
+            {`Надбавка = ставка × ${settings.nightShift?.bonusMultiplier ?? 0} × ${settings.nightShift?.bonusHours ?? 0}`}
           </span>
         </div>
         <div className="settings-row">
@@ -268,7 +271,7 @@ export default function Settings({ settings, setSettings, days, months, t, lang,
           <input
             className="settings-input settings-input--rate"
             type="text"
-            value={settings.nightShift?.overtimeMultiplier ?? 2.0}
+            value={settings.nightShift?.overtimeMultiplier ?? 0}
             onChange={e => updateNightShift('overtimeMultiplier', e.target.value)}
             inputMode="decimal"
           />

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 export default function NewYearPrompt({ year, settings, onSave, t }) {
-  const prevRate = settings.rates[String(year - 1)] || settings.rates[String(year)] || 13589
+  const prevRate = settings.rates[String(year - 1)] || settings.rates[String(year)] || 0
   const [rate, setRate] = useState(String(prevRate))
   const [allowances, setAllowances] = useState({ ...settings.allowances })
 

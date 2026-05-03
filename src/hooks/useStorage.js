@@ -5,7 +5,7 @@ export const DEFAULT_SETTINGS = {
   currency: 'KRW',
   laborLaw: 'KR',
   rates: {},
-  allowances: { job: 200000, seniority: 30000, bonus: 256000, bonusEnabled: true, vacationTotal: 15, bonusMonths: [3, 6, 9, 12] },
+  allowances: { job: 0, seniority: 0, bonus: 0, bonusEnabled: false, vacationTotal: 0, bonusMonths: [3, 6, 9, 12] },
   weekTemplate: {
     '1': { type: '주간', overtime: 0 },
     '2': { type: '주간', overtime: 0 },
@@ -15,8 +15,8 @@ export const DEFAULT_SETTINGS = {
     '6': { type: '쉬는 날', overtime: 0 },
     '0': { type: '쉬는 날', overtime: 0 },
   },
-  holidayRates: { weekdayBase: 1.5, weekdayOvertime: 2.0, weekendBase: 1.5, weekendOvertime: 2.0 },
-  nightShift: { bonusMultiplier: 0.5, bonusHours: 7.5, overtimeMultiplier: 2.0 },
+  holidayRates: { weekdayBase: 0, weekdayOvertime: 0, weekendBase: 0, weekendOvertime: 0 },
+  nightShift: { bonusMultiplier: 0, bonusHours: 0, overtimeMultiplier: 0 },
   newYearPromptShown: String(new Date().getFullYear()),
 }
 

@@ -26,7 +26,7 @@ export default function Onboarding({ defaultCurrency, onStart, t }) {
               value={rate}
               onChange={e => setRate(e.target.value)}
               inputMode="numeric"
-              placeholder="13589"
+              placeholder="0"
             />
             <button className="currency-badge" onClick={() => setShowCurrencyPicker(!showCurrencyPicker)}>
               {currency}
