@@ -1,25 +1,26 @@
 import { useEffect } from 'react'
 import WebApp from '@twa-dev/sdk'
 
-const tg = WebApp || {}
-
 export function useTelegram() {
   useEffect(() => {
-    try { tg.ready?.() } catch {}
-    try { tg.expand?.() } catch {}
-    try { tg.requestFullscreen?.() } catch {}
-    try { tg.enableClosingConfirmation?.() } catch {}
+    try { WebApp.ready?.() } catch {}
+    try { WebApp.expand?.() } catch {}
+    try { WebApp.requestFullscreen?.() } catch {}
+    try { WebApp.enableClosingConfirmation?.() } catch {}
   }, [])
 
-  const isDark = tg.colorScheme === 'dark'
-  const langCode = tg.initDataUnsafe?.user?.language_code ?? 'ru'
+  const isDark = WebApp.colorScheme === 'dark'
+  const rawLang = WebApp.initDataUnsafe?.user?.language_code
+  const langCode = rawLang ?? 'en'
+
+  console.log('[PayTracker] Telegram lang:', rawLang, '→ resolved:', langCode)
 
   const haptic = {
-    light: () => { try { tg.HapticFeedback?.impactOccurred('light') } catch {} },
-    medium: () => { try { tg.HapticFeedback?.impactOccurred('medium') } catch {} },
-    success: () => { try { tg.HapticFeedback?.notificationOccurred('success') } catch {} },
-    selection: () => { try { tg.HapticFeedback?.selectionChanged() } catch {} },
+    light: () => { try { WebApp.HapticFeedback?.impactOccurred('light') } catch {} },
+    medium: () => { try { WebApp.HapticFeedback?.impactOccurred('medium') } catch {} },
+    success: () => { try { WebApp.HapticFeedback?.notificationOccurred('success') } catch {} },
+    selection: () => { try { WebApp.HapticFeedback?.selectionChanged() } catch {} },
   }
 
-  return { isDark, langCode, haptic, WebApp: tg }
+  return { isDark, langCode, haptic, WebApp }
 }
