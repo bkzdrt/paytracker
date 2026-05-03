@@ -39,7 +39,7 @@ html, body { touch-action: pan-x pan-y; }
 }
 
 :root {
-  --font-ui: 'Inter', sans-serif;
+  --font-ui: 'Inter', 'Noto Sans', sans-serif;
   --font-numbers: 'DM Mono', monospace;
   --text-xs: 0.70rem;
   --text-sm: 0.85rem;
