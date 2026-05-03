@@ -1,10 +1,24 @@
 import { useState, useMemo } from 'react'
 import { calcMonthGross, bonusForMonth, getMonthDays, calcMonthBreakdownKR, isKRMode } from '../utils/calculations'
-import { todayStr } from '../utils/dates'
+import { todayStr, isFuture, isToday, isWeekend } from '../utils/dates'
 import MonthHeader from '../components/MonthHeader'
-import DayRow from '../components/DayRow'
 import DayBottomSheet from '../components/DayBottomSheet'
 import { useWeekTemplate } from '../hooks/useWeekTemplate'
+
+function dotClass(dayData) {
+  if (!dayData) return ''
+  if (dayData.isHoliday && dayData.type !== '결근') return 'dot--hol'
+  switch (dayData.type) {
+    case '주간':    return 'dot--day'
+    case '야간':    return 'dot--night'
+    case '쉬는 날': return 'dot--off'
+    case '연차':    return 'dot--vac'
+    case '반차':    return 'dot--half'
+    case '결근':    return 'dot--abs'
+    case 'разовая': return 'dot--casual'
+    default:        return 'dot--day'
+  }
+}
 
 export default function MonthView({ settings, days, months, setDay, deleteDay, setMonth, t, lang, formatMoney, haptic, initialMonth }) {
   const today = todayStr()
@@ -37,12 +51,8 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
 
   const monthNet = months[monthKey]?.net || null
 
-  function prevMonth() {
-    setViewMonth(m => m <= 1 ? 1 : m - 1)
-  }
-  function nextMonth() {
-    setViewMonth(m => m >= 12 ? 12 : m + 1)
-  }
+  function prevMonth() { setViewMonth(m => m <= 1 ? 1 : m - 1) }
+  function nextMonth() { setViewMonth(m => m >= 12 ? 12 : m + 1) }
 
   function saveNet() {
     const val = parseInt(netInput)
@@ -52,8 +62,20 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
     setEditingNet(false)
   }
 
+  // Build calendar grid (week starts Monday)
+  const firstDow = new Date(currentYear, viewMonth - 1, 1).getDay()
+  const startOffset = firstDow === 0 ? 6 : firstDow - 1
+
+  const cells = []
+  for (let i = 0; i < startOffset; i++) cells.push(null)
+  monthDayKeys.forEach(k => cells.push(k))
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  // Weekday headers Mon→Sun; t.weekdays.short is [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+  const weekHeaders = [1, 2, 3, 4, 5, 6, 0].map(i => t.weekdays?.short?.[i] || ['M','T','W','T','F','S','S'][i - 1 < 0 ? 6 : i - 1])
+
   return (
-    <div className="page page--month">
+    <div className="page--month">
       <MonthHeader
         year={currentYear}
         month={viewMonth}
@@ -63,18 +85,50 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
         lang={lang}
       />
 
-      <div className="day-list">
-        {monthDayKeys.map(dateStr => (
-          <DayRow
-            key={dateStr}
-            dateStr={dateStr}
-            dayData={days[dateStr]}
-            t={t}
-            lang={lang}
-            formatMoney={formatMoney}
-            onClick={() => setSheetDate(dateStr)}
-          />
+      <div className="cal-week-header">
+        {weekHeaders.map((h, i) => (
+          <div key={i} className={`cal-week-header__cell${i >= 5 ? ' cal-week-header__cell--weekend' : ''}`}>
+            {h}
+          </div>
         ))}
+      </div>
+
+      <div className="cal-grid">
+        {cells.map((dateStr, idx) => {
+          if (!dateStr) {
+            return <div key={`e-${idx}`} className="cal-cell cal-cell--empty" />
+          }
+          const dayNum = parseInt(dateStr.slice(8, 10))
+          const dayData = days[dateStr]
+          const filled = !!dayData
+          const future = isFuture(dateStr)
+          const todayCell = isToday(dateStr)
+          const weekend = isWeekend(dateStr)
+          const gross = dayData?.gross || 0
+          const negativeGross = gross < 0
+
+          let cls = 'cal-cell'
+          if (weekend) cls += ' cal-cell--weekend'
+          if (todayCell) cls += ' cal-cell--today'
+          if (future && !filled) cls += ' cal-cell--future'
+          if (filled) cls += ' cal-cell--filled'
+
+          return (
+            <div key={dateStr} className={cls} onClick={() => setSheetDate(dateStr)}>
+              <span className="cal-cell__num">{dayNum}</span>
+              {filled ? (
+                <>
+                  <span className={`cal-cell__dot ${dotClass(dayData)}`} />
+                  <span className={`cal-cell__amount${negativeGross ? ' cal-cell__amount--negative' : ''}`}>
+                    {formatMoney(gross)}
+                  </span>
+                </>
+              ) : (
+                <span className="cal-cell__dot dot--off" style={{ opacity: 0.15 }} />
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <div className="month-footer">
@@ -197,7 +251,6 @@ export default function MonthView({ settings, days, months, setDay, deleteDay, s
           onSave={setDay}
           onDelete={deleteDay}
           onClose={() => setSheetDate(null)}
-
           t={t}
           lang={lang}
           formatMoney={formatMoney}

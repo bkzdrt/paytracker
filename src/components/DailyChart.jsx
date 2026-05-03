@@ -6,7 +6,7 @@ export default function DailyChart({ data, todayNum }) {
       <BarChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }} barCategoryGap="10%">
         <XAxis
           dataKey="day"
-          tick={{ fontSize: 9, fill: 'var(--text-muted)' }}
+          tick={{ fontSize: 9, fill: '#F0F0F0' }}
           axisLine={false}
           tickLine={false}
           interval={2}
@@ -14,15 +14,17 @@ export default function DailyChart({ data, todayNum }) {
         <YAxis hide />
         <Tooltip
           formatter={(v) => v ? [v.toLocaleString(), ''] : ['-', '']}
-          contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
-          cursor={{ fill: 'var(--surface-2)' }}
+          contentStyle={{ background: 'rgba(15,15,15,0.96)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 8, fontSize: 12, color: '#F0F0F0' }}
+          labelStyle={{ color: '#F0F0F0' }}
+          itemStyle={{ color: '#F0F0F0' }}
+          cursor={{ fill: 'rgba(255,255,255,0.05)' }}
           labelFormatter={(label) => `${label}`}
         />
         <Bar dataKey="gross" radius={[3, 3, 0, 0]} minPointSize={2}>
           {data.map((entry, i) => {
-            let fill = 'var(--border)'
-            if (entry.day === todayNum) fill = 'var(--accent)'
-            else if (entry.gross > 0) fill = 'var(--surface-2)'
+            let fill = 'rgba(255,255,255,0.05)'
+            if (entry.day === todayNum) fill = '#C9A84C'
+            else if (entry.gross > 0) fill = 'rgba(255,255,255,0.18)'
             return <Cell key={i} fill={fill} />
           })}
         </Bar>

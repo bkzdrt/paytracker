@@ -17,9 +17,8 @@ export default function App() {
   const [tab, setTab] = useState('home')
   const [goToMonth, setGoToMonth] = useState(null)
 
-  // Apply theme
   if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+    document.documentElement.setAttribute('data-theme', 'dark')
   }
 
   const currentYear = new Date().getFullYear()

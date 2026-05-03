@@ -8,16 +8,18 @@ export default function BarChartMonth({ data, onBarClick, currentMonth }) {
           onBarClick(e.activePayload[0].payload.monthIndex)
         }
       }}>
-        <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} interval={0} />
+        <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#F0F0F0' }} axisLine={false} tickLine={false} interval={0} />
         <YAxis hide />
         <Tooltip
           formatter={(v) => v ? [v.toLocaleString(), ''] : ['-', '']}
-          contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
-          cursor={{ fill: 'var(--surface-2)' }}
+          contentStyle={{ background: 'rgba(15,15,15,0.96)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 8, fontSize: 12, color: '#F0F0F0' }}
+          labelStyle={{ color: '#F0F0F0' }}
+          itemStyle={{ color: '#F0F0F0' }}
+          cursor={{ fill: 'rgba(255,255,255,0.05)' }}
         />
         <Bar dataKey="gross" radius={[4, 4, 0, 0]}>
           {data.map((entry, i) => (
-            <Cell key={i} fill={i + 1 === currentMonth ? 'var(--accent)' : entry.gross ? 'var(--surface-2)' : 'var(--border)'} />
+            <Cell key={i} fill={i + 1 === currentMonth ? '#C9A84C' : entry.gross ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.05)'} />
           ))}
         </Bar>
       </BarChart>
