@@ -114,9 +114,11 @@ export default function Dashboard({ settings, days, months, setDay, deleteDay, t
 
   return (
     <div className="page page--dashboard">
-      <div style={{fontSize: '10px', color: 'red', padding: '4px'}}>
-        LANG: {WebApp?.initDataUnsafe?.user?.language_code || 'undefined'}
-        {' '}INIT: {WebApp?.initData ? 'yes' : 'no'}
+      <div style={{fontSize: '10px', color: 'red', padding: '4px', lineHeight: '1.6'}}>
+        LANG1: {WebApp?.initDataUnsafe?.user?.language_code || 'undefined'}{' '}
+        INIT: {WebApp?.initData ? 'yes' : 'no'}{' '}
+        BROWSER: {navigator.language || 'undefined'}{' '}
+        RESOLVED: {lang}
       </div>
       <div className="dashboard-hero">
         <div className="dashboard-hero__month">{monthName.charAt(0).toUpperCase() + monthName.slice(1)} {currentYear}</div>
