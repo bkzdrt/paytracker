@@ -14,17 +14,17 @@ export default function DailyChart({ data, todayNum }) {
         <YAxis hide />
         <Tooltip
           formatter={(v) => v ? [v.toLocaleString(), ''] : ['-', '']}
-          contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12, color: 'var(--text)' }}
+          contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', borderRadius: 8, fontSize: 12, color: 'var(--text)' }}
           labelStyle={{ color: 'var(--text)' }}
           itemStyle={{ color: 'var(--text)' }}
-          cursor={{ fill: 'var(--surface-2)' }}
+          cursor={{ fill: 'rgba(22,24,29,0.04)' }}
           labelFormatter={(label) => `${label}`}
         />
         <Bar dataKey="gross" radius={[3, 3, 0, 0]} minPointSize={2}>
           {data.map((entry, i) => {
-            let fill = 'var(--surface)'
-            if (entry.day === todayNum) fill = 'var(--accent)'
-            else if (entry.gross > 0) fill = 'var(--surface-2)'
+            let fill = 'var(--surface-2)'
+            if (entry.day === todayNum) fill = 'var(--ink)'
+            else if (entry.gross > 0) fill = 'var(--surface-3)'
             return <Cell key={i} fill={fill} />
           })}
         </Bar>

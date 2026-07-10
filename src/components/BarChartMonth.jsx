@@ -12,14 +12,14 @@ export default function BarChartMonth({ data, onBarClick, currentMonth }) {
         <YAxis hide />
         <Tooltip
           formatter={(v) => v ? [v.toLocaleString(), ''] : ['-', '']}
-          contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12, color: 'var(--text)' }}
+          contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', borderRadius: 8, fontSize: 12, color: 'var(--text)' }}
           labelStyle={{ color: 'var(--text)' }}
           itemStyle={{ color: 'var(--text)' }}
-          cursor={{ fill: 'var(--surface-2)' }}
+          cursor={{ fill: 'rgba(22,24,29,0.04)' }}
         />
         <Bar dataKey="gross" radius={[4, 4, 0, 0]}>
           {data.map((entry, i) => (
-            <Cell key={i} fill={i + 1 === currentMonth ? 'var(--accent)' : entry.gross ? 'var(--surface-2)' : 'var(--surface)'} />
+            <Cell key={i} fill={i + 1 === currentMonth ? 'var(--ink)' : entry.gross ? 'var(--surface-3)' : 'var(--surface-2)'} />
           ))}
         </Bar>
       </BarChart>
