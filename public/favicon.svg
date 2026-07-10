@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#080808"/>
-  <rect x="14" y="14" width="484" height="484" rx="100" fill="none" stroke="#C9A84C" stroke-opacity="0.15" stroke-width="6"/>
-  <text x="256" y="341" font-family="Inter, 'Noto Sans', sans-serif" font-weight="600" font-size="256" fill="#C9A84C" text-anchor="middle">₩</text>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2E96FF"/>
+      <stop offset="1" stop-color="#007AFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#g)"/>
+  <text x="256" y="342" font-family="Inter, 'Noto Sans', -apple-system, sans-serif" font-weight="600" font-size="252" fill="#FFFFFF" text-anchor="middle">₩</text>
 </svg>

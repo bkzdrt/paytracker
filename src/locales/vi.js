@@ -1,5 +1,5 @@
 export default {
-  tabs: { home: 'Trang chủ', month: 'Tháng', settings: 'Cài đặt' },
+  tabs: { home: 'Trang chủ', month: 'Tháng', settings: 'Cài đặt' , guide: 'Cẩm nang'},
   dashboard: {
     workedDays: 'Ngày đã làm',
     daysOff: 'Ngày nghỉ',
@@ -112,5 +112,13 @@ export default {
   weekdays: {
     short: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
     long: ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'],
+  },
+  guide: {
+    title: 'Luật lao động Hàn Quốc',
+    intro: 'Cẩm nang bằng tiếng Hàn. Sao chép bất kỳ đoạn nào và dịch bằng ứng dụng dịch của bạn — để thuật ngữ pháp lý luôn chính xác.',
+    copy: 'Sao chép',
+    copied: 'Đã sao chép ✓',
+    copyAll: 'Sao chép cả mục',
+    disclaimer: 'Chỉ mang tính tham khảo, không phải tư vấn pháp lý. Luật có thể thay đổi. Trợ giúp: 1350 (Bộ Lao động, đa ngôn ngữ), 1345 (trung tâm hỗ trợ người nước ngoài).',
   },
 }

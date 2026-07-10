@@ -1,27 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import WebApp from '@twa-dev/sdk'
 
-function detectIsDark() {
-  try {
-    // Inside Telegram: trust the Mini App color scheme
-    if (WebApp?.initData) return WebApp.colorScheme === 'dark'
-  } catch {}
-  // Outside Telegram (PWA/browser): fall back to system preference
-  try {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-    }
-  } catch {}
-  return true
-}
-
 const SUPPORTED = [
-  'ru','en','ko','uz','kk','uk','ar','fa','tr',
-  'de','fr','es','it','pt','pl','nl','sv','no',
-  'fi','da','cs','sk','ro','hu','bg','sr','hr',
-  'zh','ja','vi','th','id','ms','tl','my','km',
-  'lo','si','mn','ne','bn','hi','ta','te','ml',
-  'ka','hy','az','tk','tg','ky',
+  'ru','en','ko','uz','zh','vi','th',
+  'id','tl','my','km','lo','ne',
 ]
 
 function getTelegramLang() {
@@ -59,29 +41,11 @@ function getTelegramLang() {
 }
 
 export function useTelegram() {
-  const [isDark, setIsDark] = useState(detectIsDark)
-
   useEffect(() => {
     try { WebApp.ready?.() } catch {}
     try { WebApp.expand?.() } catch {}
     try { WebApp.requestFullscreen?.() } catch {}
     try { WebApp.enableClosingConfirmation?.() } catch {}
-
-    // React to theme changes while the app is open (Telegram in-app switch,
-    // or the OS-level scheme when running as a standalone PWA)
-    const onTelegramTheme = () => setIsDark(detectIsDark())
-    try { WebApp.onEvent?.('themeChanged', onTelegramTheme) } catch {}
-
-    let mql
-    try {
-      mql = window.matchMedia?.('(prefers-color-scheme: dark)')
-      mql?.addEventListener?.('change', onTelegramTheme)
-    } catch {}
-
-    return () => {
-      try { WebApp.offEvent?.('themeChanged', onTelegramTheme) } catch {}
-      try { mql?.removeEventListener?.('change', onTelegramTheme) } catch {}
-    }
   }, [])
 
   const langCode = getTelegramLang()
@@ -93,5 +57,5 @@ export function useTelegram() {
     selection: () => { try { WebApp.HapticFeedback?.selectionChanged() } catch {} },
   }
 
-  return { isDark, langCode, haptic, WebApp }
+  return { langCode, haptic, WebApp }
 }

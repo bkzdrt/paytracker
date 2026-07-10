@@ -1,5 +1,5 @@
 export default {
-  tabs: { home: '홈', month: '월별', settings: '설정' },
+  tabs: { home: '홈', month: '월별', settings: '설정' , guide: '가이드'},
   dashboard: {
     workedDays: '근무일수',
     daysOff: '휴무일',
@@ -112,5 +112,13 @@ export default {
   weekdays: {
     short: ['일', '월', '화', '수', '목', '금', '토'],
     long: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
+  },
+  guide: {
+    title: '한국 노동법 가이드',
+    intro: '각 항목을 복사하여 번역 앱에서 번역할 수 있습니다.',
+    copy: '복사',
+    copied: '복사됨 ✓',
+    copyAll: '전체 복사',
+    disclaimer: '이 정보는 참고용이며 법률 자문이 아닙니다. 법은 변경될 수 있습니다. 도움: 고용노동부 1350, 외국인종합안내센터 1345.',
   },
 }

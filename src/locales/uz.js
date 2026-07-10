@@ -1,5 +1,5 @@
 export default {
-  tabs: { home: 'Bosh sahifa', month: 'Oy', settings: 'Sozlamalar' },
+  tabs: { home: 'Bosh sahifa', month: 'Oy', settings: 'Sozlamalar' , guide: "Qo'llanma"},
   dashboard: {
     workedDays: 'Ishlangan kunlar',
     daysOff: 'Dam olish kunlari',
@@ -112,5 +112,13 @@ export default {
   weekdays: {
     short: ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'],
     long: ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'],
+  },
+  guide: {
+    title: 'Koreya mehnat qonuni',
+    intro: "Qo'llanma koreys tilida. Istalgan qismini nusxalab, o'z tarjimon ilovangizda tarjima qiling — shunda yuridik atamalar aniq qoladi.",
+    copy: 'Nusxalash',
+    copied: 'Nusxalandi ✓',
+    copyAll: "Bo'limni to'liq nusxalash",
+    disclaimer: "Ma'lumot faqat ma'lumot uchun, yuridik maslahat emas. Qonunlar o'zgarishi mumkin. Yordam: 1350 (Mehnat vazirligi), 1345 (chet elliklar markazi).",
   },
 }
