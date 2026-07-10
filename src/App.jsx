@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useStorage } from './hooks/useStorage'
 import { useTelegram } from './hooks/useTelegram'
 import { useLocale } from './hooks/useLocale'
@@ -17,9 +17,11 @@ export default function App() {
   const [tab, setTab] = useState('home')
   const [goToMonth, setGoToMonth] = useState(null)
 
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', 'dark')
-  }
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+    }
+  }, [isDark])
 
   const currentYear = new Date().getFullYear()
 

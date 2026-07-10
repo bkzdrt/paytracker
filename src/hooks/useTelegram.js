@@ -1,5 +1,19 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import WebApp from '@twa-dev/sdk'
+
+function detectIsDark() {
+  try {
+    // Inside Telegram: trust the Mini App color scheme
+    if (WebApp?.initData) return WebApp.colorScheme === 'dark'
+  } catch {}
+  // Outside Telegram (PWA/browser): fall back to system preference
+  try {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+    }
+  } catch {}
+  return true
+}
 
 const SUPPORTED = [
   'ru','en','ko','uz','kk','uk','ar','fa','tr',
@@ -45,14 +59,31 @@ function getTelegramLang() {
 }
 
 export function useTelegram() {
+  const [isDark, setIsDark] = useState(detectIsDark)
+
   useEffect(() => {
     try { WebApp.ready?.() } catch {}
     try { WebApp.expand?.() } catch {}
     try { WebApp.requestFullscreen?.() } catch {}
     try { WebApp.enableClosingConfirmation?.() } catch {}
+
+    // React to theme changes while the app is open (Telegram in-app switch,
+    // or the OS-level scheme when running as a standalone PWA)
+    const onTelegramTheme = () => setIsDark(detectIsDark())
+    try { WebApp.onEvent?.('themeChanged', onTelegramTheme) } catch {}
+
+    let mql
+    try {
+      mql = window.matchMedia?.('(prefers-color-scheme: dark)')
+      mql?.addEventListener?.('change', onTelegramTheme)
+    } catch {}
+
+    return () => {
+      try { WebApp.offEvent?.('themeChanged', onTelegramTheme) } catch {}
+      try { mql?.removeEventListener?.('change', onTelegramTheme) } catch {}
+    }
   }, [])
 
-  const isDark = WebApp.colorScheme === 'dark'
   const langCode = getTelegramLang()
 
   const haptic = {
