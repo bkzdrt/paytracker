@@ -2,12 +2,8 @@ import { useEffect } from 'react'
 import WebApp from '@twa-dev/sdk'
 
 const SUPPORTED = [
-  'ru','en','ko','uz','kk','uk','ar','fa','tr',
-  'de','fr','es','it','pt','pl','nl','sv','no',
-  'fi','da','cs','sk','ro','hu','bg','sr','hr',
-  'zh','ja','vi','th','id','ms','tl','my','km',
-  'lo','si','mn','ne','bn','hi','ta','te','ml',
-  'ka','hy','az','tk','tg','ky',
+  'ru','en','ko','uz','zh','vi','th',
+  'id','tl','my','km','lo','ne',
 ]
 
 function getTelegramLang() {
@@ -52,7 +48,6 @@ export function useTelegram() {
     try { WebApp.enableClosingConfirmation?.() } catch {}
   }, [])
 
-  const isDark = WebApp.colorScheme === 'dark'
   const langCode = getTelegramLang()
 
   const haptic = {
@@ -62,5 +57,5 @@ export function useTelegram() {
     selection: () => { try { WebApp.HapticFeedback?.selectionChanged() } catch {} },
   }
 
-  return { isDark, langCode, haptic, WebApp }
+  return { langCode, haptic, WebApp }
 }

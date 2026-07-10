@@ -1,5 +1,5 @@
 export default {
-  tabs: { home: 'Home', month: 'Buwan', settings: 'Mga Setting' },
+  tabs: { home: 'Home', month: 'Buwan', settings: 'Mga Setting' , guide: 'Gabay'},
   dashboard: {
     workedDays: 'Mga araw na nagtrabaho',
     daysOff: 'Mga araw na pahinga',
@@ -112,5 +112,13 @@ export default {
   weekdays: {
     short: ['Lin', 'Lun', 'Mar', 'Miy', 'Huw', 'Biy', 'Sab'],
     long: ['Linggo', 'Lunes', 'Martes', 'Miyerkules', 'Huwebes', 'Biyernes', 'Sabado'],
+  },
+  guide: {
+    title: 'Batas Paggawa ng Korea',
+    intro: 'Ang gabay ay nasa wikang Korean. Kopyahin ang anumang bahagi at isalin gamit ang sarili mong translator app — para manatiling tama ang mga legal na termino.',
+    copy: 'Kopyahin',
+    copied: 'Nakopya ✓',
+    copyAll: 'Kopyahin ang buong seksyon',
+    disclaimer: 'Para sa sanggunian lamang, hindi legal na payo. Maaaring magbago ang batas. Tulong: 1350 (Ministry of Labor, multilingual), 1345 (foreigner info center).',
   },
 }

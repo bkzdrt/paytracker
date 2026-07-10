@@ -2,24 +2,20 @@ import { useState, useMemo } from 'react'
 import { useStorage } from './hooks/useStorage'
 import { useTelegram } from './hooks/useTelegram'
 import { useLocale } from './hooks/useLocale'
-import { useWeekTemplate } from './hooks/useWeekTemplate'
 import Dashboard from './pages/Dashboard'
 import MonthView from './pages/MonthView'
 import Settings from './pages/Settings'
+import Guide from './pages/Guide'
 import BottomNav from './components/BottomNav'
 import Onboarding from './components/Onboarding'
 import NewYearPrompt from './components/NewYearPrompt'
 
 export default function App() {
   const { loading, settings, days, months, setSettings, setDay, deleteDay, setMonth, initSettings, clearYear, DEFAULT_SETTINGS } = useStorage()
-  const { isDark, langCode, haptic } = useTelegram()
+  const { langCode, haptic } = useTelegram()
   const { t, lang } = useLocale(langCode)
   const [tab, setTab] = useState('home')
   const [goToMonth, setGoToMonth] = useState(null)
-
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', 'dark')
-  }
 
   const currentYear = new Date().getFullYear()
 
@@ -120,6 +116,9 @@ export default function App() {
             haptic={haptic}
             initialMonth={goToMonth}
           />
+        )}
+        {tab === 'guide' && (
+          <Guide t={t} haptic={haptic} />
         )}
         {tab === 'settings' && (
           <Settings

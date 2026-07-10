@@ -1,5 +1,5 @@
 export default {
-  tabs: { home: '首页', month: '月份', settings: '设置' },
+  tabs: { home: '首页', month: '月份', settings: '设置' , guide: '指南'},
   dashboard: {
     workedDays: '工作天数',
     daysOff: '休息天数',
@@ -112,5 +112,13 @@ export default {
   weekdays: {
     short: ['日', '一', '二', '三', '四', '五', '六'],
     long: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+  },
+  guide: {
+    title: '韩国劳动法指南',
+    intro: '本指南为韩语。复制任意段落，用您自己的翻译软件翻译——这样法律术语更准确。',
+    copy: '复制',
+    copied: '已复制 ✓',
+    copyAll: '复制整节',
+    disclaimer: '仅供参考，不构成法律建议。法律可能变更。求助：1350（雇佣劳动部，多语言）、1345（外国人综合服务中心）。',
   },
 }

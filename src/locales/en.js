@@ -1,5 +1,5 @@
 export default {
-  tabs: { home: 'Home', month: 'Month', settings: 'Settings' },
+  tabs: { home: 'Home', month: 'Month', settings: 'Settings' , guide: 'Guide'},
   dashboard: {
     workedDays: 'Days worked',
     daysOff: 'Days off',
@@ -112,5 +112,13 @@ export default {
   weekdays: {
     short: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     long: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  },
+  guide: {
+    title: 'Korean Labor Law',
+    intro: 'This guide is in Korean. Copy any block and translate it with your own translator app — this keeps legal terms accurate.',
+    copy: 'Copy',
+    copied: 'Copied ✓',
+    copyAll: 'Copy entire section',
+    disclaimer: 'For reference only, not legal advice. Laws may change. Help: 1350 (Ministry of Labor, multilingual), 1345 (foreigner info center).',
   },
 }

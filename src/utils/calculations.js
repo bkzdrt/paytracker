@@ -230,7 +230,7 @@ export function calcProjected(days, monthDayKeys, settings, currentMonth) {
     }
   })
 
-  monthDayKeys.filter(k => k > today).forEach(dateStr => {
+  monthDayKeys.filter(k => k >= today && !days[k]).forEach(dateStr => {
     const dow = new Date(dateStr).getDay()
     const isWeekend = dow === 0 || dow === 6
     const tmpl = settings.weekTemplate?.[String(dow)]

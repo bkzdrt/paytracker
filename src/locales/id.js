@@ -1,5 +1,5 @@
 export default {
-  tabs: { home: 'Beranda', month: 'Bulan', settings: 'Pengaturan' },
+  tabs: { home: 'Beranda', month: 'Bulan', settings: 'Pengaturan' , guide: 'Panduan'},
   dashboard: {
     workedDays: 'Hari kerja',
     daysOff: 'Hari libur',
@@ -112,5 +112,13 @@ export default {
   weekdays: {
     short: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
     long: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+  },
+  guide: {
+    title: 'Hukum Ketenagakerjaan Korea',
+    intro: 'Panduan ini dalam bahasa Korea. Salin bagian mana pun dan terjemahkan dengan aplikasi penerjemah Anda — agar istilah hukum tetap akurat.',
+    copy: 'Salin',
+    copied: 'Tersalin ✓',
+    copyAll: 'Salin seluruh bagian',
+    disclaimer: 'Hanya untuk referensi, bukan nasihat hukum. Hukum dapat berubah. Bantuan: 1350 (Kementerian Tenaga Kerja, multibahasa), 1345 (pusat informasi orang asing).',
   },
 }
