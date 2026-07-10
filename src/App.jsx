@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react'
 import { useStorage } from './hooks/useStorage'
 import { useTelegram } from './hooks/useTelegram'
 import { useLocale } from './hooks/useLocale'
-import { useWeekTemplate } from './hooks/useWeekTemplate'
 import Dashboard from './pages/Dashboard'
 import MonthView from './pages/MonthView'
 import Settings from './pages/Settings'
@@ -20,6 +19,9 @@ export default function App() {
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+      document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+        meta.setAttribute('content', isDark ? '#080808' : '#FAF9F6')
+      })
     }
   }, [isDark])
 
