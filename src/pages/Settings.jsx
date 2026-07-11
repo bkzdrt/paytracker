@@ -58,6 +58,7 @@ export default function Settings() {
   } = useApp()
   const currentYear = parseInt(todayStr().slice(0, 4))
   const [copied, setCopied] = useState(false)
+  const [newYear, setNewYear] = useState('')
 
   const patch = (fn) => setSettings(s => fn(s))
   const patchAllowances = (key, val) => patch(s => ({ ...s, allowances: { ...s.allowances, [key]: val } }))
@@ -70,6 +71,26 @@ export default function Settings() {
   function employmentLabel(et) {
     if (lang === 'ko') return et.ko
     return `${et.ko} — ${t.employmentTypes[et.id]}`
+  }
+
+  // Rate rows for the active scheme: current year + any later years
+  const rateYears = [...new Set([
+    String(currentYear),
+    ...Object.keys(settings.payRates?.[payType] || {}).filter(y => parseInt(y) > currentYear),
+  ])].sort()
+
+  function addYear() {
+    const y = parseInt(newYear)
+    if (!y || y < currentYear || settings.payRates?.[payType]?.[String(y)] !== undefined) return
+    haptics.light()
+    patch(s => ({
+      ...s,
+      payRates: {
+        ...s.payRates,
+        [s.payType]: { ...s.payRates[s.payType], [String(y)]: getRate(s, currentYear) },
+      },
+    }))
+    setNewYear('')
   }
 
   // Quarterly bonus
@@ -160,20 +181,31 @@ export default function Settings() {
             </button>
           ))}
         </div>
-        <div className="settings-row settings-row--gap">
-          <span className="settings-row__label">{payLabels[payType]} · <span className="num">{currentYear}</span></span>
-          <DecimalInput
-            key={payType}
-            value={settings.payRates?.[payType]?.[String(currentYear)] ?? getRate(settings, currentYear)}
-            className="input input--rate num"
-            onCommit={v => patch(s => ({
-              ...s,
-              payRates: {
-                ...s.payRates,
-                [s.payType]: { ...s.payRates[s.payType], [String(currentYear)]: v },
-              },
-            }))}
+        {rateYears.map(year => (
+          <div key={`${payType}-${year}`}
+            className={`settings-row${year === String(currentYear) ? ' settings-row--current' : ''}${year === rateYears[0] ? ' settings-row--gap' : ''}`}>
+            <span className="settings-row__label">{payLabels[payType]} · <span className="num">{year}</span></span>
+            <DecimalInput
+              value={settings.payRates?.[payType]?.[year] ?? (year === String(currentYear) ? getRate(settings, currentYear) : 0)}
+              className="input input--rate num"
+              onCommit={v => patch(s => ({
+                ...s,
+                payRates: {
+                  ...s.payRates,
+                  [s.payType]: { ...s.payRates[s.payType], [year]: v },
+                },
+              }))}
+            />
+          </div>
+        ))}
+        <div className="settings-row">
+          <input
+            className="input input--sm num"
+            type="text" inputMode="numeric" placeholder={String(currentYear + 1)}
+            value={newYear}
+            onChange={e => { if (/^\d{0,4}$/.test(e.target.value)) setNewYear(e.target.value) }}
           />
+          <button type="button" className="btn-secondary" onClick={addYear}>{t.settings.addYear}</button>
         </div>
       </section>
 
