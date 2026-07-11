@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useApp } from '../app/store'
 import { DAY_TYPES, canHaveOvertime } from '../domain/types'
-import { calcDayGross } from '../domain/payroll'
+import { calcDayGross, getHourlyRate } from '../domain/payroll'
 import { todayStr, isWeekend } from '../domain/dates'
 import { haptics } from '../services/haptics'
 
@@ -30,7 +30,7 @@ export default function DayEditor({ dateStr, onClose }) {
     existing?.type === 'casual' ? String(existing.gross || '') : ''
   )
 
-  const rate = settings.rates[dateStr.slice(0, 4)] || 0
+  const rate = getHourlyRate(settings, parseInt(dateStr.slice(0, 4)))
   const isCasual = type === 'casual'
   const weekend = isWeekend(dateStr)
   const gross = isCasual

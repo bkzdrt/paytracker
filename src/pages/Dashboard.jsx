@@ -1,43 +1,56 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../app/store'
 import { getMonthDays, monthKeyOf, todayStr } from '../domain/dates'
-import { calcMonthGross, calcMonthStats, isKRMode, vacationUsedInYear } from '../domain/payroll'
+import { calcMonthGross, calcMonthStats, getRate, isSumMode, vacationUsedInYear } from '../domain/payroll'
 import { haptics } from '../services/haptics'
 import BarChart from '../components/BarChart'
 import MonthBreakdown from '../components/MonthBreakdown'
 import DayEditor from '../components/DayEditor'
 
 export default function Dashboard({ onGoToMonth }) {
-  const { t, intl, settings, days, months, formatMoney } = useApp()
+  const { t, intl, settings, days, months, ensureYear, formatMoney } = useApp()
   const today = todayStr()
   const currentYear = parseInt(today.slice(0, 4))
   const currentMonth = parseInt(today.slice(5, 7))
   const todayNum = parseInt(today.slice(8, 10))
 
-  const [month, setMonth] = useState(currentMonth)
+  const [view, setView] = useState({ year: currentYear, month: currentMonth })
   const [sheetOpen, setSheetOpen] = useState(false)
 
-  const isKR = isKRMode(settings)
-  const rate = settings.rates[String(currentYear)] || 0
-  const monthDayKeys = useMemo(() => getMonthDays(currentYear, month), [currentYear, month])
+  const { year, month } = view
+  useEffect(() => { ensureYear(year) }, [year, ensureYear])
+
+  const sumMode = isSumMode(settings)
+  const rate = getRate(settings, year)
+  const monthDayKeys = useMemo(() => getMonthDays(year, month), [year, month])
 
   const gross = useMemo(
-    () => calcMonthGross(monthDayKeys, days, rate, settings, month),
-    [monthDayKeys, days, rate, settings, month]
+    () => calcMonthGross(monthDayKeys, days, settings, year, month),
+    [monthDayKeys, days, settings, year, month]
   )
-  const net = months[monthKeyOf(currentYear, month)]?.net || null
+  const net = months[monthKeyOf(year, month)]?.net || null
   const stats = useMemo(() => calcMonthStats(monthDayKeys, days), [monthDayKeys, days])
 
   const vacationTotal = settings.allowances?.vacationTotal ?? 0
-  const vacationLeft = Math.max(0, vacationTotal - vacationUsedInYear(days, currentYear))
+  const vacationLeft = Math.max(0, vacationTotal - vacationUsedInYear(days, year))
 
-  const isCurrentMonth = month === currentMonth
+  const isCurrentMonth = year === currentYear && month === currentMonth
   const todayLogged = !!days[today]
 
+  function shiftMonth(delta) {
+    haptics.light()
+    setView(v => {
+      let m = v.month + delta, y = v.year
+      if (m < 1) { m = 12; y-- }
+      if (m > 12) { m = 1; y++ }
+      return { year: y, month: m }
+    })
+  }
+
   const monthLabel = useMemo(() => {
-    const s = new Date(currentYear, month - 1, 1).toLocaleDateString(intl, { month: 'long', year: 'numeric' })
+    const s = new Date(year, month - 1, 1).toLocaleDateString(intl, { month: 'long', year: 'numeric' })
     return s.charAt(0).toUpperCase() + s.slice(1)
-  }, [currentYear, month, intl])
+  }, [year, month, intl])
 
   const dailyItems = useMemo(() => monthDayKeys.map(k => ({
     label: String(parseInt(k.slice(8, 10))),
@@ -48,26 +61,27 @@ export default function Dashboard({ onGoToMonth }) {
   const yearItems = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1
-      const label = new Date(currentYear, i, 1).toLocaleDateString(intl, { month: 'short' })
-      const keys = getMonthDays(currentYear, m)
-      // Only months that were actually logged count — otherwise the KR ×209
-      // base would show phantom income for months before the user started
+      const label = new Date(year, i, 1).toLocaleDateString(intl, { month: 'short' })
+      const keys = getMonthDays(year, m)
+      // Only logged months count — otherwise the guaranteed base would show
+      // phantom income for months the user never filled in
       const hasData = keys.some(k => days[k])
-      if (m > currentMonth || (!hasData && m !== currentMonth)) return { label, value: 0, muted: true }
+      const isNow = year === currentYear && m === currentMonth
+      if (!hasData && !isNow) return { label, value: 0, muted: true }
       return {
         label,
-        value: calcMonthGross(keys, days, rate, settings, m),
+        value: calcMonthGross(keys, days, settings, year, m),
         highlight: m === month,
       }
     })
-  }, [currentYear, currentMonth, month, days, rate, settings, intl])
+  }, [year, currentYear, currentMonth, month, days, settings, intl])
 
   const yearGross = useMemo(() => yearItems.reduce((s, it) => s + Math.max(0, it.value), 0), [yearItems])
   const yearNet = useMemo(() =>
     Object.entries(months)
-      .filter(([k]) => k.startsWith(String(currentYear)))
+      .filter(([k]) => k.startsWith(String(year)))
       .reduce((s, [, m]) => s + (m?.net || 0), 0),
-  [months, currentYear])
+  [months, year])
 
   const statChips = [
     { label: t.dashboard.workedDays, value: stats.worked },
@@ -77,25 +91,33 @@ export default function Dashboard({ onGoToMonth }) {
     { label: t.dashboard.holidays, value: stats.holidays },
   ]
 
+  const company = settings.profile?.company
+
   return (
     <div className="page">
       <header className="hero">
         <div className="month-nav">
-          <button type="button" className="month-nav__arrow" aria-label="‹" disabled={month <= 1}
-            onClick={() => { haptics.light(); setMonth(m => m - 1) }}>‹</button>
+          <button type="button" className="month-nav__arrow" aria-label="‹"
+            onClick={() => shiftMonth(-1)}>‹</button>
           <button
             type="button"
             className={`month-nav__label${isCurrentMonth ? ' month-nav__label--current' : ''}`}
-            onClick={() => { haptics.light(); setMonth(currentMonth) }}
+            onClick={() => { haptics.light(); setView({ year: currentYear, month: currentMonth }) }}
           >
             {monthLabel}
           </button>
-          <button type="button" className="month-nav__arrow" aria-label="›" disabled={month >= 12}
-            onClick={() => { haptics.light(); setMonth(m => m + 1) }}>›</button>
+          <button type="button" className="month-nav__arrow" aria-label="›"
+            onClick={() => shiftMonth(1)}>›</button>
         </div>
 
         <div className="hero__gross num">{formatMoney(gross)}</div>
-        {isKR && <div className="hero__sub">{t.dashboard.base}: <span className="num">{formatMoney(rate * 209)}</span> ×209</div>}
+        {company && <div className="hero__company">{company}</div>}
+        {!sumMode && settings.payType === 'hourly' && (
+          <div className="hero__sub">{t.dashboard.base}: <span className="num">{formatMoney(rate * 209)}</span> ×209</div>
+        )}
+        {!sumMode && (settings.payType === 'monthly' || settings.payType === 'annual') && (
+          <div className="hero__sub">{t.baseSalary}: <span className="num">{formatMoney(settings.payType === 'annual' ? rate / 12 : rate)}</span></div>
+        )}
         {net && (
           <div className="hero__net">
             {t.month.net}: <span className="num">{formatMoney(net)}</span>
@@ -122,7 +144,7 @@ export default function Dashboard({ onGoToMonth }) {
 
       <section className="card">
         <h2 className="card__title">{t.dashboard.monthTotal}</h2>
-        <MonthBreakdown year={currentYear} month={month} />
+        <MonthBreakdown year={year} month={month} />
       </section>
 
       <section className="card">
@@ -131,12 +153,12 @@ export default function Dashboard({ onGoToMonth }) {
       </section>
 
       <section className="card">
-        <h2 className="card__title">{t.dashboard.yearOverview}</h2>
+        <h2 className="card__title">{t.dashboard.yearOverview} · <span className="num">{year}</span></h2>
         <BarChart
           items={yearItems}
           formatValue={formatMoney}
           height={110}
-          onBarTap={i => { haptics.light(); onGoToMonth(i + 1) }}
+          onBarTap={i => { haptics.light(); onGoToMonth({ year, month: i + 1 }) }}
         />
         <div className="year-totals">
           <div className="year-totals__row">

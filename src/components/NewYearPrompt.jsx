@@ -1,20 +1,29 @@
 import { useState } from 'react'
 import { useApp } from '../app/store'
+import { getRate } from '../domain/payroll'
 import { haptics } from '../services/haptics'
 
 // Shown once at the start of a new year: confirm rate + allowances
 export default function NewYearPrompt({ year }) {
   const { t, settings, setSettings } = useApp()
-  const prevRate = settings.rates[String(year - 1)] || settings.rates[String(year)] || 0
+  const payType = settings.payType || 'hourly'
+  const prevRate = getRate(settings, year)
   const [rate, setRate] = useState(String(prevRate))
   const [allowances, setAllowances] = useState({ ...settings.allowances })
+
+  const payLabels = {
+    hourly: t.payHourly, daily: t.payDaily, monthly: t.payMonthly, annual: t.payAnnual,
+  }
 
   function save() {
     haptics.success()
     const newRate = parseFloat(rate.replace(',', '.')) || prevRate
     setSettings(s => ({
       ...s,
-      rates: { ...s.rates, [String(year)]: newRate },
+      payRates: {
+        ...s.payRates,
+        [payType]: { ...s.payRates[payType], [String(year)]: newRate },
+      },
       allowances,
       newYearPromptShown: String(year),
     }))
@@ -38,7 +47,7 @@ export default function NewYearPrompt({ year }) {
       <div className="onboarding__form">
         <h2 className="onboarding__title onboarding__title--sm">{t.newYear.title}</h2>
         <div className="form-group">
-          <label className="form-label">{t.newYear.rateLabel.replace('{year}', year)}</label>
+          <label className="form-label">{payLabels[payType]} — {year}</label>
           <input
             className="input input--big num"
             type="text"

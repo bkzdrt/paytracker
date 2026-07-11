@@ -22,14 +22,14 @@
   --danger: #C23B2E;
   --danger-soft: #F8E4E1;
 
-  --dot-day: #2E9E63;
+  --dot-day: #4A9DD6;
   --dot-night: #5B6BC0;
   --dot-off: #ABAFA2;
-  --dot-vacation: #38A3C0;
+  --dot-vacation: #2E9E63;
   --dot-half: #8FBF52;
-  --dot-absence: #D64545;
+  --dot-absence: #E8863A;
   --dot-casual: #E0A93E;
-  --dot-holiday: #E0703F;
+  --dot-holiday: #D64545;
 
   --seg-active: #FFFFFF;
 
@@ -217,6 +217,14 @@ a { color: inherit; text-decoration: none; }
   color: var(--text);
   margin-top: 6px;
   line-height: 1.1;
+}
+
+.hero__company {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.01em;
 }
 
 .hero__sub {
@@ -517,6 +525,8 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 0 0 2.5px var(--accent-soft);
 }
 
+.cal-cell--today.cal-cell--filled { border-width: 1.5px; }
+
 .cal-cell__num { font-size: 11.5px; font-weight: 500; color: var(--muted); }
 
 .cal-cell--filled .cal-cell__num { color: var(--text); }
@@ -559,6 +569,35 @@ a { color: inherit; text-decoration: none; }
 .dot--absence { background: var(--dot-absence); }
 .dot--casual { background: var(--dot-casual); }
 .dot--holiday { background: var(--dot-holiday); }
+
+.cal-cell--filled { border-width: 1.5px; }
+.cal-cell--t-day { border-color: var(--dot-day); }
+.cal-cell--t-night { border-color: var(--dot-night); }
+.cal-cell--t-off { border-color: var(--dot-off); }
+.cal-cell--t-vacation { border-color: var(--dot-vacation); }
+.cal-cell--t-half { border-color: var(--dot-half); }
+.cal-cell--t-absence { border-color: var(--dot-absence); }
+.cal-cell--t-casual { border-color: var(--dot-casual); }
+.cal-cell--t-holiday { border-color: var(--dot-holiday); }
+
+/* Legend swatches mirror the cell rings */
+.ring {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--dot-off);
+  background: transparent;
+}
+
+.ring--day { border-color: var(--dot-day); }
+.ring--night { border-color: var(--dot-night); }
+.ring--off { border-color: var(--dot-off); }
+.ring--vacation { border-color: var(--dot-vacation); }
+.ring--half { border-color: var(--dot-half); }
+.ring--absence { border-color: var(--dot-absence); }
+.ring--casual { border-color: var(--dot-casual); }
+.ring--holiday { border-color: var(--dot-holiday); }
 
 .cal-legend {
   display: flex;
@@ -957,6 +996,9 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .btn-ghost-danger:active { background: var(--danger-soft); }
 
 .btn-stack { display: flex; flex-direction: column; gap: 8px; }
+
+.data-actions { display: flex; gap: 8px; }
+.data-actions__btn { flex: 1; padding: 12px 10px; font-weight: 600; }
 
 .icon-btn {
   flex: none;

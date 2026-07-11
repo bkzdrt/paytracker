@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { useApp } from '../app/store'
-import { DAY_TYPES } from '../domain/types'
+import { DAY_TYPES, PAY_TYPES, EMPLOYMENT_TYPES } from '../domain/types'
+import { getRate } from '../domain/payroll'
 import { todayStr } from '../domain/dates'
 import { LANGUAGES } from '../i18n'
 import { haptics } from '../services/haptics'
-import { exportCSV, exportJSON, importJSON } from '../services/backup'
-import { storedYears } from '../services/storage'
+import { exportJSON, importJSON } from '../services/backup'
 
-const CURRENCIES = ['KRW', 'RUB', 'USD', 'EUR', 'KZT', 'UZS']
 const DECIMAL_RE = /^[0-9]*[.,]?[0-9]*$/
 const TON_WALLET = 'UQCWSZkplJiZ-UHwOsUwwcNypYEFS3Gq2_ws2tiLwjEN0wCZ'
 const FEEDBACK_URL = 'https://t.me/bekzodart'
@@ -55,26 +54,22 @@ function DecimalInput({ value, onCommit, className = 'input input--sm num' }) {
 export default function Settings() {
   const {
     t, lang, intl, theme, setLang, setTheme,
-    settings, setSettings, days, months, clearYear, reloadAll,
+    settings, setSettings, reloadAll,
   } = useApp()
   const currentYear = parseInt(todayStr().slice(0, 4))
-  const [newYear, setNewYear] = useState('')
   const [copied, setCopied] = useState(false)
 
   const patch = (fn) => setSettings(s => fn(s))
   const patchAllowances = (key, val) => patch(s => ({ ...s, allowances: { ...s.allowances, [key]: val } }))
 
-  // Rates: current year + future years
-  const ratesDisplay = {
-    [String(currentYear)]: settings.rates[String(currentYear)] ?? 0,
-    ...Object.fromEntries(Object.entries(settings.rates).filter(([y]) => parseInt(y) > currentYear)),
+  const payType = settings.payType || 'hourly'
+  const payLabels = {
+    hourly: t.payHourly, daily: t.payDaily, monthly: t.payMonthly, annual: t.payAnnual,
   }
 
-  function addYear() {
-    const y = parseInt(newYear)
-    if (!y || y < currentYear || settings.rates[String(y)] !== undefined) return
-    patch(s => ({ ...s, rates: { ...s.rates, [String(y)]: s.rates[String(currentYear)] || 0 } }))
-    setNewYear('')
+  function employmentLabel(et) {
+    if (lang === 'ko') return et.ko
+    return `${et.ko} — ${t.employmentTypes[et.id]}`
   }
 
   // Quarterly bonus
@@ -107,13 +102,6 @@ export default function Settings() {
     }
   }
 
-  function handleClearYear() {
-    const msg = t.settings.confirmClear.replace('{year}', currentYear)
-    if (window.confirm(msg)) clearYear(currentYear)
-  }
-
-  const dataYears = storedYears()
-
   return (
     <div className="page page--settings">
 
@@ -137,24 +125,55 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* Hourly rates */}
+      {/* Profile: company + employment type */}
       <section className="card">
-        <h2 className="card__title">{t.settings.rates}</h2>
-        {Object.entries(ratesDisplay).sort(([a], [b]) => a - b).map(([year, rate]) => (
-          <div key={year} className={`settings-row${String(year) === String(currentYear) ? ' settings-row--current' : ''}`}>
-            <span className="settings-row__label num">{year}</span>
-            <DecimalInput value={rate} className="input input--rate num"
-              onCommit={v => patch(s => ({ ...s, rates: { ...s.rates, [year]: v } }))} />
-          </div>
-        ))}
-        <div className="settings-row">
-          <input
-            className="input input--sm num"
-            type="text" inputMode="numeric" placeholder={String(currentYear + 1)}
-            value={newYear}
-            onChange={e => { if (/^\d{0,4}$/.test(e.target.value)) setNewYear(e.target.value) }}
+        <label className="form-label" htmlFor="st-company">{t.company}</label>
+        <input
+          id="st-company"
+          className="input"
+          type="text"
+          maxLength={60}
+          value={settings.profile?.company || ''}
+          onChange={e => patch(s => ({ ...s, profile: { ...s.profile, company: e.target.value } }))}
+        />
+        <label className="form-label settings-row--gap" style={{ display: 'block' }}>{t.employment}</label>
+        <select
+          className="input input--select"
+          value={settings.profile?.employment || 'regular'}
+          onChange={e => patch(s => ({ ...s, profile: { ...s.profile, employment: e.target.value } }))}
+        >
+          {EMPLOYMENT_TYPES.map(et => (
+            <option key={et.id} value={et.id}>{employmentLabel(et)}</option>
+          ))}
+        </select>
+      </section>
+
+      {/* Pay: scheme + rate. Rates are stored per scheme, so switching
+          schemes never loses previously entered values. */}
+      <section className="card">
+        <h2 className="card__title">{t.pay}</h2>
+        <div className="chips-row">
+          {PAY_TYPES.map(pt => (
+            <button key={pt} type="button" className={`chip${payType === pt ? ' chip--active' : ''}`}
+              onClick={() => { haptics.light(); patch(s => ({ ...s, payType: pt })) }}>
+              {payLabels[pt]}
+            </button>
+          ))}
+        </div>
+        <div className="settings-row settings-row--gap">
+          <span className="settings-row__label">{payLabels[payType]} · <span className="num">{currentYear}</span></span>
+          <DecimalInput
+            key={payType}
+            value={settings.payRates?.[payType]?.[String(currentYear)] ?? getRate(settings, currentYear)}
+            className="input input--rate num"
+            onCommit={v => patch(s => ({
+              ...s,
+              payRates: {
+                ...s.payRates,
+                [s.payType]: { ...s.payRates[s.payType], [String(currentYear)]: v },
+              },
+            }))}
           />
-          <button type="button" className="btn-secondary" onClick={addYear}>{t.settings.addYear}</button>
         </div>
       </section>
 
@@ -272,41 +291,17 @@ export default function Settings() {
         ))}
       </section>
 
-      {/* Currency */}
-      <section className="card">
-        <h2 className="card__title">{t.settings.currency}</h2>
-        <div className="chips-row">
-          {CURRENCIES.map(c => (
-            <button key={c} type="button" className={`chip${settings.currency === c ? ' chip--active' : ''}`}
-              onClick={() => { haptics.light(); patch(s => ({ ...s, currency: c, laborLaw: c === 'KRW' ? 'KR' : 'default' })) }}>
-              {c}
-            </button>
-          ))}
-        </div>
-        <p className="muted card__note">
-          {settings.currency === 'KRW' ? t.settings.laborLawKR : t.settings.laborLawDefault}
-        </p>
-      </section>
-
-      {/* Data */}
+      {/* Data: export / import */}
       <section className="card">
         <h2 className="card__title">{t.settings.data}</h2>
-        <div className="btn-stack">
-          <button type="button" className="btn-secondary" onClick={() => { exportJSON(); haptics.success() }}>
-            ⬇ {t.backupExport}
+        <div className="data-actions">
+          <button type="button" className="btn-secondary data-actions__btn"
+            onClick={() => { exportJSON(); haptics.success() }}>
+            ⬇ {t.exportData}
           </button>
-          <button type="button" className="btn-secondary" onClick={handleImport}>
-            ⬆ {t.backupImport}
+          <button type="button" className="btn-secondary data-actions__btn" onClick={handleImport}>
+            ⬆ {t.importData}
           </button>
-          <button type="button" className="btn-secondary"
-            onClick={() => { exportCSV(days, months, currentYear); haptics.success() }}>
-            {t.settings.exportCsv} ({currentYear})
-          </button>
-          {dataYears.length > 0 && (
-            <button type="button" className="btn-ghost-danger" onClick={handleClearYear}>
-              {t.settings.clearAll} ({currentYear})
-            </button>
-          )}
         </div>
       </section>
 

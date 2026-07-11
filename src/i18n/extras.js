@@ -2,6 +2,10 @@
 // Merged over the base locale files at runtime (see i18n/index.js).
 export default {
   en: {
+    company: "Company (optional)", employment: "Employment type", pay: "Pay",
+    payHourly: "Hourly rate", payDaily: "Daily rate", payMonthly: "Monthly salary", payAnnual: "Annual salary",
+    baseSalary: "Base salary", exportData: "Export", importData: "Import",
+    employmentTypes: { regular: "Full-time (permanent)", contract: "Contract", fixedTerm: "Fixed-term", dayLabor: "Day labor", partTime: "Part-time", dispatch: "Dispatch agency", subcontract: "Subcontract", freelance: "Freelance", soleProprietor: "Sole proprietor", selfEmployed: "Self-employed" },
     language: 'Language', theme: 'Theme', themeAuto: 'Auto', themeLight: 'Light', themeDark: 'Dark',
     backup: 'Backup', backupExport: 'Download backup', backupImport: 'Restore from file',
     backupImportConfirm: 'Replace current data with the file contents?',
@@ -9,6 +13,10 @@ export default {
     updateReady: 'New version available', updateReload: 'Update',
   },
   ru: {
+    company: "Предприятие (необязательно)", employment: "Тип трудоустройства", pay: "Оплата",
+    payHourly: "Часовая ставка", payDaily: "Дневная ставка", payMonthly: "Договорная (месяц)", payAnnual: "Годовая",
+    baseSalary: "Оклад", exportData: "Экспорт", importData: "Импорт",
+    employmentTypes: { regular: "Постоянный сотрудник", contract: "Контрактная работа", fixedTerm: "Срочный договор", dayLabor: "Подённая работа", partTime: "Подработка", dispatch: "Через кадровое агентство", subcontract: "Работа через подрядчика", freelance: "Фриланс", soleProprietor: "Индивидуальный предприниматель", selfEmployed: "Самозанятость" },
     language: 'Язык', theme: 'Тема', themeAuto: 'Авто', themeLight: 'Светлая', themeDark: 'Тёмная',
     backup: 'Резервная копия', backupExport: 'Скачать копию данных', backupImport: 'Восстановить из файла',
     backupImportConfirm: 'Заменить текущие данные данными из файла?',
@@ -16,6 +24,10 @@ export default {
     updateReady: 'Доступна новая версия', updateReload: 'Обновить',
   },
   ko: {
+    company: "회사명 (선택)", employment: "고용 형태", pay: "급여",
+    payHourly: "시급", payDaily: "일급", payMonthly: "월급", payAnnual: "연봉",
+    baseSalary: "기본급", exportData: "내보내기", importData: "가져오기",
+    employmentTypes: { regular: "정규직", contract: "계약직", fixedTerm: "기간제", dayLabor: "일용직", partTime: "아르바이트", dispatch: "파견직", subcontract: "도급", freelance: "프리랜서", soleProprietor: "개인사업자", selfEmployed: "자영업" },
     language: '언어', theme: '테마', themeAuto: '자동', themeLight: '라이트', themeDark: '다크',
     backup: '백업', backupExport: '백업 다운로드', backupImport: '파일에서 복원',
     backupImportConfirm: '현재 데이터를 파일 내용으로 교체할까요?',
@@ -23,6 +35,10 @@ export default {
     updateReady: '새 버전이 있습니다', updateReload: '업데이트',
   },
   uz: {
+    company: "Korxona (ixtiyoriy)", employment: "Bandlik turi", pay: "Maosh",
+    payHourly: "Soatlik stavka", payDaily: "Kunlik stavka", payMonthly: "Oylik maosh", payAnnual: "Yillik maosh",
+    baseSalary: "Asosiy maosh", exportData: "Eksport", importData: "Import",
+    employmentTypes: { regular: "Doimiy xodim", contract: "Shartnoma asosida", fixedTerm: "Muddatli shartnoma", dayLabor: "Kunlik ish", partTime: "Qo'shimcha ish", dispatch: "Kadrlar agentligi orqali", subcontract: "Pudratchi orqali", freelance: "Frilans", soleProprietor: "Yakka tartibdagi tadbirkor", selfEmployed: "O'z-o'zini band qilish" },
     language: 'Til', theme: 'Mavzu', themeAuto: 'Avto', themeLight: "Yorug'", themeDark: "Qorong'i",
     backup: 'Zaxira nusxa', backupExport: 'Zaxira nusxani yuklab olish', backupImport: 'Fayldan tiklash',
     backupImportConfirm: "Joriy ma'lumotlar fayl bilan almashtirilsinmi?",
@@ -30,6 +46,10 @@ export default {
     updateReady: 'Yangi versiya mavjud', updateReload: 'Yangilash',
   },
   zh: {
+    company: "公司（可选）", employment: "用工形式", pay: "薪酬",
+    payHourly: "时薪", payDaily: "日薪", payMonthly: "月薪", payAnnual: "年薪",
+    baseSalary: "基本工资", exportData: "导出", importData: "导入",
+    employmentTypes: { regular: "正式员工", contract: "合同工", fixedTerm: "固定期限", dayLabor: "日结工", partTime: "兼职", dispatch: "派遣", subcontract: "承包", freelance: "自由职业", soleProprietor: "个体户", selfEmployed: "自雇" },
     language: '语言', theme: '主题', themeAuto: '自动', themeLight: '浅色', themeDark: '深色',
     backup: '备份', backupExport: '下载备份', backupImport: '从文件恢复',
     backupImportConfirm: '用文件内容替换当前数据？',
@@ -37,6 +57,10 @@ export default {
     updateReady: '有新版本', updateReload: '更新',
   },
   vi: {
+    company: "Công ty (không bắt buộc)", employment: "Hình thức tuyển dụng", pay: "Lương",
+    payHourly: "Lương theo giờ", payDaily: "Lương theo ngày", payMonthly: "Lương tháng", payAnnual: "Lương năm",
+    baseSalary: "Lương cơ bản", exportData: "Xuất", importData: "Nhập",
+    employmentTypes: { regular: "Nhân viên chính thức", contract: "Hợp đồng", fixedTerm: "Thời hạn cố định", dayLabor: "Làm công nhật", partTime: "Làm thêm", dispatch: "Qua công ty phái cử", subcontract: "Qua nhà thầu phụ", freelance: "Freelance", soleProprietor: "Hộ kinh doanh cá thể", selfEmployed: "Tự kinh doanh" },
     language: 'Ngôn ngữ', theme: 'Giao diện', themeAuto: 'Tự động', themeLight: 'Sáng', themeDark: 'Tối',
     backup: 'Sao lưu', backupExport: 'Tải bản sao lưu', backupImport: 'Khôi phục từ tệp',
     backupImportConfirm: 'Thay thế dữ liệu hiện tại bằng nội dung tệp?',
@@ -44,6 +68,10 @@ export default {
     updateReady: 'Có phiên bản mới', updateReload: 'Cập nhật',
   },
   th: {
+    company: "บริษัท (ไม่บังคับ)", employment: "ประเภทการจ้างงาน", pay: "ค่าตอบแทน",
+    payHourly: "รายชั่วโมง", payDaily: "รายวัน", payMonthly: "รายเดือน", payAnnual: "รายปี",
+    baseSalary: "เงินเดือนพื้นฐาน", exportData: "ส่งออก", importData: "นำเข้า",
+    employmentTypes: { regular: "พนักงานประจำ", contract: "สัญญาจ้าง", fixedTerm: "ตามกำหนดเวลา", dayLabor: "รายวัน", partTime: "พาร์ทไทม์", dispatch: "ผ่านบริษัทจัดหางาน", subcontract: "ผ่านผู้รับเหมา", freelance: "ฟรีแลนซ์", soleProprietor: "เจ้าของกิจการ", selfEmployed: "อาชีพอิสระ" },
     language: 'ภาษา', theme: 'ธีม', themeAuto: 'อัตโนมัติ', themeLight: 'สว่าง', themeDark: 'มืด',
     backup: 'สำรองข้อมูล', backupExport: 'ดาวน์โหลดข้อมูลสำรอง', backupImport: 'กู้คืนจากไฟล์',
     backupImportConfirm: 'แทนที่ข้อมูลปัจจุบันด้วยไฟล์นี้?',
@@ -51,6 +79,10 @@ export default {
     updateReady: 'มีเวอร์ชันใหม่', updateReload: 'อัปเดต',
   },
   id: {
+    company: "Perusahaan (opsional)", employment: "Jenis pekerjaan", pay: "Gaji",
+    payHourly: "Per jam", payDaily: "Per hari", payMonthly: "Per bulan", payAnnual: "Per tahun",
+    baseSalary: "Gaji pokok", exportData: "Ekspor", importData: "Impor",
+    employmentTypes: { regular: "Karyawan tetap", contract: "Kontrak", fixedTerm: "Jangka waktu tertentu", dayLabor: "Kerja harian", partTime: "Paruh waktu", dispatch: "Melalui agen penyalur", subcontract: "Melalui subkontraktor", freelance: "Freelance", soleProprietor: "Wiraswasta", selfEmployed: "Bekerja mandiri" },
     language: 'Bahasa', theme: 'Tema', themeAuto: 'Otomatis', themeLight: 'Terang', themeDark: 'Gelap',
     backup: 'Cadangan', backupExport: 'Unduh cadangan', backupImport: 'Pulihkan dari file',
     backupImportConfirm: 'Ganti data saat ini dengan isi file?',
@@ -58,6 +90,10 @@ export default {
     updateReady: 'Versi baru tersedia', updateReload: 'Perbarui',
   },
   tl: {
+    company: "Kumpanya (opsyonal)", employment: "Uri ng trabaho", pay: "Sahod",
+    payHourly: "Kada oras", payDaily: "Arawan", payMonthly: "Buwanan", payAnnual: "Taunan",
+    baseSalary: "Batayang sahod", exportData: "I-export", importData: "I-import",
+    employmentTypes: { regular: "Regular (permanente)", contract: "Kontraktwal", fixedTerm: "May takdang panahon", dayLabor: "Arawang trabaho", partTime: "Part-time", dispatch: "Sa ahensya", subcontract: "Sa subkontratista", freelance: "Freelance", soleProprietor: "May-ari ng negosyo", selfEmployed: "Self-employed" },
     language: 'Wika', theme: 'Tema', themeAuto: 'Awto', themeLight: 'Maliwanag', themeDark: 'Madilim',
     backup: 'Backup', backupExport: 'I-download ang backup', backupImport: 'Ibalik mula sa file',
     backupImportConfirm: 'Palitan ang kasalukuyang data ng laman ng file?',
@@ -65,6 +101,10 @@ export default {
     updateReady: 'May bagong bersyon', updateReload: 'I-update',
   },
   my: {
+    company: "ကုမ္ပဏီ (ရွေးချယ်နိုင်)", employment: "အလုပ်အကိုင်ပုံစံ", pay: "လုပ်ခ",
+    payHourly: "နာရီလစာ", payDaily: "နေ့လစာ", payMonthly: "လစဉ်လစာ", payAnnual: "နှစ်စဉ်လစာ",
+    baseSalary: "အခြေခံလစာ", exportData: "ထုတ်ယူရန်", importData: "တင်သွင်းရန်",
+    employmentTypes: { regular: "အမြဲတမ်းဝန်ထမ်း", contract: "စာချုပ်ဝန်ထမ်း", fixedTerm: "သတ်မှတ်ကာလ", dayLabor: "နေ့စားလုပ်သား", partTime: "အချိန်ပိုင်း", dispatch: "အေဂျင်စီမှတဆင့်", subcontract: "ကန်ထရိုက်မှတဆင့်", freelance: "လွတ်လပ်လုပ်သား", soleProprietor: "တစ်ဦးတည်းပိုင်လုပ်ငန်း", selfEmployed: "ကိုယ်ပိုင်အလုပ်" },
     language: 'ဘာသာစကား', theme: 'အသွင်အပြင်', themeAuto: 'အလိုအလျောက်', themeLight: 'အလင်း', themeDark: 'အမှောင်',
     backup: 'အရန်သိမ်းခြင်း', backupExport: 'အရန်ဖိုင် ဒေါင်းလုဒ်လုပ်ရန်', backupImport: 'ဖိုင်မှ ပြန်ယူရန်',
     backupImportConfirm: 'လက်ရှိဒေတာကို ဖိုင်ပါအချက်အလက်နှင့် အစားထိုးမလား?',
@@ -72,6 +112,10 @@ export default {
     updateReady: 'ဗားရှင်းအသစ် ရှိပါသည်', updateReload: 'အပ်ဒိတ်',
   },
   km: {
+    company: "ក្រុមហ៊ុន (ស្រេចចិត្ត)", employment: "ប្រភេទការងារ", pay: "ប្រាក់បៀវត្ស",
+    payHourly: "តាមម៉ោង", payDaily: "តាមថ្ងៃ", payMonthly: "ប្រាក់ខែ", payAnnual: "ប្រាក់ឆ្នាំ",
+    baseSalary: "ប្រាក់ខែគោល", exportData: "នាំចេញ", importData: "នាំចូល",
+    employmentTypes: { regular: "បុគ្គលិកអចិន្ត្រៃយ៍", contract: "កិច្ចសន្យា", fixedTerm: "រយៈពេលកំណត់", dayLabor: "ការងារប្រចាំថ្ងៃ", partTime: "ក្រៅម៉ោង", dispatch: "តាមភ្នាក់ងារ", subcontract: "តាមអ្នកម៉ៅការ", freelance: "ការងារឯករាជ្យ", soleProprietor: "ម្ចាស់អាជីវកម្ម", selfEmployed: "ការងារខ្លួនឯង" },
     language: 'ភាសា', theme: 'រូបរាង', themeAuto: 'ស្វ័យប្រវត្តិ', themeLight: 'ភ្លឺ', themeDark: 'ងងឹត',
     backup: 'បម្រុងទុក', backupExport: 'ទាញយកឯកសារបម្រុង', backupImport: 'ស្ដារពីឯកសារ',
     backupImportConfirm: 'ជំនួសទិន្នន័យបច្ចុប្បន្នដោយឯកសារនេះ?',
@@ -79,6 +123,10 @@ export default {
     updateReady: 'មានកំណែថ្មី', updateReload: 'ធ្វើបច្ចុប្បន្នភាព',
   },
   lo: {
+    company: "ບໍລິສັດ (ທາງເລືອກ)", employment: "ປະເພດການຈ້າງງານ", pay: "ຄ່າຈ້າງ",
+    payHourly: "ຕໍ່ຊົ່ວໂມງ", payDaily: "ຕໍ່ວັນ", payMonthly: "ເງິນເດືອນ", payAnnual: "ຕໍ່ປີ",
+    baseSalary: "ເງິນເດືອນພື້ນຖານ", exportData: "ສົ່ງອອກ", importData: "ນຳເຂົ້າ",
+    employmentTypes: { regular: "ພະນັກງານປະຈຳ", contract: "ສັນຍາຈ້າງ", fixedTerm: "ກຳນົດເວລາ", dayLabor: "ວຽກລາຍວັນ", partTime: "ວຽກເສີມ", dispatch: "ຜ່ານບໍລິສັດຈັດຫາງານ", subcontract: "ຜ່ານຜູ້ຮັບເໝົາ", freelance: "ຟຣີແລນ", soleProprietor: "ເຈົ້າຂອງທຸລະກິດ", selfEmployed: "ອາຊີບອິດສະຫຼະ" },
     language: 'ພາສາ', theme: 'ຮູບແບບ', themeAuto: 'ອັດຕະໂນມັດ', themeLight: 'ແຈ້ງ', themeDark: 'ມືດ',
     backup: 'ສຳຮອງຂໍ້ມູນ', backupExport: 'ດາວໂຫລດຂໍ້ມູນສຳຮອງ', backupImport: 'ກູ້ຄືນຈາກໄຟລ໌',
     backupImportConfirm: 'ແທນທີ່ຂໍ້ມູນປັດຈຸບັນດ້ວຍໄຟລ໌ນີ້?',
@@ -86,6 +134,10 @@ export default {
     updateReady: 'ມີເວີຊັນໃໝ່', updateReload: 'ອັບເດດ',
   },
   ne: {
+    company: "कम्पनी (वैकल्पिक)", employment: "रोजगारको प्रकार", pay: "तलब",
+    payHourly: "प्रति घण्टा", payDaily: "प्रति दिन", payMonthly: "मासिक तलब", payAnnual: "वार्षिक तलब",
+    baseSalary: "आधारभूत तलब", exportData: "निर्यात", importData: "आयात",
+    employmentTypes: { regular: "स्थायी कर्मचारी", contract: "करार", fixedTerm: "निश्चित अवधि", dayLabor: "दैनिक ज्याला", partTime: "आंशिक समय", dispatch: "एजेन्सी मार्फत", subcontract: "उपठेक्का मार्फत", freelance: "फ्रिल्यान्स", soleProprietor: "एकल व्यवसायी", selfEmployed: "स्वरोजगार" },
     language: 'भाषा', theme: 'थिम', themeAuto: 'स्वतः', themeLight: 'उज्यालो', themeDark: 'अँध्यारो',
     backup: 'ब्याकअप', backupExport: 'ब्याकअप डाउनलोड', backupImport: 'फाइलबाट पुनर्स्थापना',
     backupImportConfirm: 'हालको डाटा फाइलको सामग्रीले बदल्ने?',

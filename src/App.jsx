@@ -11,7 +11,7 @@ import NewYearPrompt from './components/NewYearPrompt'
 export default function App() {
   const { settings } = useApp()
   const [tab, setTab] = useState('home')
-  const [goToMonth, setGoToMonth] = useState(null)
+  const [goToView, setGoToView] = useState(null)
 
   const currentYear = new Date().getFullYear()
 
@@ -27,13 +27,15 @@ export default function App() {
     <div className="app">
       <main className="main">
         {tab === 'home' && (
-          <Dashboard onGoToMonth={(m) => { setGoToMonth(m); setTab('month') }} />
+          <Dashboard onGoToMonth={(v) => { setGoToView(v); setTab('month') }} />
         )}
-        {tab === 'month' && <CalendarPage key={goToMonth || 'cal'} initialMonth={goToMonth} />}
+        {tab === 'month' && (
+          <CalendarPage key={goToView ? `${goToView.year}-${goToView.month}` : 'cal'} initialView={goToView} />
+        )}
         {tab === 'guide' && <Guide />}
         {tab === 'settings' && <Settings />}
       </main>
-      <BottomNav tab={tab} onChange={(next) => { setGoToMonth(null); setTab(next) }} />
+      <BottomNav tab={tab} onChange={(next) => { setGoToView(null); setTab(next) }} />
     </div>
   )
 }

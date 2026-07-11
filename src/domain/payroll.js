@@ -109,21 +109,61 @@ export function bonusForMonth(allowances, month) {
   return bonusMonths.includes(month) ? (allowances.bonus || 0) : 0
 }
 
-export function isKRMode(settings) {
-  if (!settings) return false
-  return (settings.laborLaw ?? (settings.currency === 'KRW' ? 'KR' : 'default')) === 'KR'
+// ── Pay schemes ───────────────────────────────────────────────────────────────
+// Rates are stored per scheme (payRates[payType][year]) so switching the
+// scheme in settings never destroys previously entered rates, and stored
+// day grosses are never recomputed retroactively.
+
+// Raw rate for the active pay scheme; falls back to the nearest known year
+export function getRate(settings, year) {
+  const table = settings?.payRates?.[settings?.payType || 'hourly'] || {}
+  if (table[year] != null) return table[year]
+  const known = Object.keys(table).map(Number).filter(y => !isNaN(y) && table[y] > 0)
+  const earlier = known.filter(y => y < year).sort((a, b) => b - a)
+  if (earlier.length) return table[earlier[0]]
+  const later = known.filter(y => y > year).sort((a, b) => a - b)
+  return later.length ? table[later[0]] : 0
 }
 
-// KR mode: full month breakdown around the rate×209 base
-export function calcMonthBreakdownKR(monthDayKeys, days, rate, settings, month) {
-  const base = rate * 209
+// Hourly equivalent of the active rate (shift/overtime math runs on hours)
+export function getHourlyRate(settings, year) {
+  const rate = getRate(settings, year)
+  switch (settings?.payType) {
+    case 'daily': return rate / 8
+    case 'monthly': return rate / 209
+    case 'annual': return rate / 12 / 209
+    default: return rate
+  }
+}
+
+// Guaranteed monthly base for base-mode schemes
+function monthlyBaseOf(settings, year) {
+  const rate = getRate(settings, year)
+  switch (settings?.payType) {
+    case 'monthly': return rate
+    case 'annual': return rate / 12
+    default: return rate * 209
+  }
+}
+
+// Daily pay scheme (일용직): no monthly base, the month is the sum of days.
+// Legacy non-KR settings also use sum mode.
+export function isSumMode(settings) {
+  if (!settings) return false
+  return settings.payType === 'daily' || (settings.laborLaw ?? 'KR') !== 'KR'
+}
+
+// Base mode: full month breakdown around the guaranteed monthly base
+export function calcMonthBreakdown(monthDayKeys, days, settings, year, month) {
+  const base = monthlyBaseOf(settings, year)
+  const hourly = getHourlyRate(settings, year)
   let overtime = 0, holiday = 0, weekend = 0, deductions = 0, casual = 0
 
   for (const dateStr of monthDayKeys) {
     const d = days[dateStr]
     if (!d) continue
     if (d.type === 'casual') { casual += d.gross || 0; continue }
-    const e = calcDayExtras({ ...d, dateStr }, rate, settings)
+    const e = calcDayExtras({ ...d, dateStr }, hourly, settings)
     overtime += e.overtimePay + e.nightPremium
     holiday += e.holidayPremium
     weekend += e.weekendPremium
@@ -137,8 +177,8 @@ export function calcMonthBreakdownKR(monthDayKeys, days, rate, settings, month) 
   return { base, overtime, holiday, weekend, allowances, bonus, deductions, casual, total }
 }
 
-// Default mode: sum of logged days + allowances (+ bonus added by caller)
-export function calcMonthGrossDefault(monthDayKeys, days, settings, month) {
+// Sum mode: logged days + allowances + bonus
+export function calcMonthGrossSum(monthDayKeys, days, settings, month) {
   const logged = monthDayKeys.filter(k => days[k])
   if (logged.length === 0) return 0
   const dailySum = logged.reduce((s, k) => s + (days[k].gross || 0), 0)
@@ -146,10 +186,10 @@ export function calcMonthGrossDefault(monthDayKeys, days, settings, month) {
   return Math.round(dailySum + allowances + bonusForMonth(settings.allowances, month))
 }
 
-// Unified month gross for any mode
-export function calcMonthGross(monthDayKeys, days, rate, settings, month) {
-  if (isKRMode(settings)) return calcMonthBreakdownKR(monthDayKeys, days, rate, settings, month).total
-  return calcMonthGrossDefault(monthDayKeys, days, settings, month)
+// Unified month gross for any scheme
+export function calcMonthGross(monthDayKeys, days, settings, year, month) {
+  if (isSumMode(settings)) return calcMonthGrossSum(monthDayKeys, days, settings, month)
+  return calcMonthBreakdown(monthDayKeys, days, settings, year, month).total
 }
 
 // Month stats for the dashboard chips

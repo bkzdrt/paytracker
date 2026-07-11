@@ -12,13 +12,13 @@ function dotType(dayData) {
   return dayData.type
 }
 
-export default function CalendarPage({ initialMonth }) {
+export default function CalendarPage({ initialView }) {
   const { t, intl, settings, days, months, ensureYear, formatMoney, formatMoneyCompact } = useApp()
   const today = todayStr()
 
   const [view, setView] = useState({
-    year: parseInt(today.slice(0, 4)),
-    month: initialMonth || parseInt(today.slice(5, 7)),
+    year: initialView?.year || parseInt(today.slice(0, 4)),
+    month: initialView?.month || parseInt(today.slice(5, 7)),
   })
   const [sheetDate, setSheetDate] = useState(null)
   const [footerOpen, setFooterOpen] = useState(false)
@@ -27,11 +27,10 @@ export default function CalendarPage({ initialMonth }) {
 
   const { year, month } = view
   const monthDayKeys = useMemo(() => getMonthDays(year, month), [year, month])
-  const rate = settings.rates[String(year)] || 0
 
   const gross = useMemo(
-    () => calcMonthGross(monthDayKeys, days, rate, settings, month),
-    [monthDayKeys, days, rate, settings, month]
+    () => calcMonthGross(monthDayKeys, days, settings, year, month),
+    [monthDayKeys, days, settings, year, month]
   )
   const net = months[monthKeyOf(year, month)]?.net || null
 
@@ -81,11 +80,10 @@ export default function CalendarPage({ initialMonth }) {
           if (isWeekend(dateStr)) cls += ' cal-cell--weekend'
           if (isToday(dateStr)) cls += ' cal-cell--today'
           if (!d && isFuture(dateStr)) cls += ' cal-cell--future'
-          if (d) cls += ' cal-cell--filled'
+          if (d) cls += ` cal-cell--filled cal-cell--t-${dt}`
           return (
             <button key={dateStr} type="button" className={cls} onClick={() => setSheetDate(dateStr)}>
               <span className="cal-cell__num num">{parseInt(dateStr.slice(8, 10))}</span>
-              {d && <span className={`dot dot--${dt}`} />}
               {d && (d.gross || 0) !== 0 && (
                 <span className={`cal-cell__amount num${d.gross < 0 ? ' neg' : ''}`}>
                   {formatMoneyCompact(d.gross)}
@@ -100,7 +98,7 @@ export default function CalendarPage({ initialMonth }) {
       <div className="cal-legend">
         {['day', 'night', 'off', 'vacation', 'absence', 'holiday'].map(k => (
           <span key={k} className="cal-legend__item">
-            <span className={`dot dot--${k}`} />
+            <span className={`ring ring--${k}`} />
             {k === 'holiday' ? t.dashboard.holidays : t.dayTypes[k]}
           </span>
         ))}

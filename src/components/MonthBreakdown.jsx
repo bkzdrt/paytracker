@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../app/store'
 import { getMonthDays, monthKeyOf } from '../domain/dates'
-import { calcMonthBreakdownKR, calcMonthGrossDefault, bonusForMonth, isKRMode } from '../domain/payroll'
+import { calcMonthBreakdown, calcMonthGrossSum, bonusForMonth, isSumMode } from '../domain/payroll'
 
 // Month pay breakdown + tappable net (take-home) row.
 // Used on the dashboard and in the calendar footer.
@@ -12,17 +12,16 @@ export default function MonthBreakdown({ year, month }) {
 
   const monthKey = monthKeyOf(year, month)
   const monthDayKeys = useMemo(() => getMonthDays(year, month), [year, month])
-  const isKR = isKRMode(settings)
-  const rate = settings.rates[String(year)] || 0
+  const sumMode = isSumMode(settings)
 
   const breakdown = useMemo(
-    () => (isKR ? calcMonthBreakdownKR(monthDayKeys, days, rate, settings, month) : null),
-    [isKR, monthDayKeys, days, rate, settings, month]
+    () => (sumMode ? null : calcMonthBreakdown(monthDayKeys, days, settings, year, month)),
+    [sumMode, monthDayKeys, days, settings, year, month]
   )
-  const gross = isKR
-    ? breakdown.total
-    : calcMonthGrossDefault(monthDayKeys, days, settings, month)
-  const bonusLine = !isKR ? bonusForMonth(settings.allowances, month) : 0
+  const gross = sumMode
+    ? calcMonthGrossSum(monthDayKeys, days, settings, month)
+    : breakdown.total
+  const bonusLine = sumMode ? bonusForMonth(settings.allowances, month) : 0
   const net = months[monthKey]?.net || null
 
   function saveNet() {
@@ -31,9 +30,14 @@ export default function MonthBreakdown({ year, month }) {
     setEditingNet(false)
   }
 
-  const rows = isKR
+  const baseLabel = settings.payType === 'hourly' ? t.month.baseKR : t.baseSalary
+
+  const rows = sumMode
     ? [
-        { label: t.month.baseKR, value: breakdown.base, always: true },
+        { label: t.month.quarterBonus, value: bonusLine, plus: true, bonus: true },
+      ]
+    : [
+        { label: baseLabel, value: breakdown.base, always: true },
         { label: t.month.overtimePay, value: breakdown.overtime, plus: true },
         { label: t.month.holidayPay, value: breakdown.holiday, plus: true },
         { label: t.month.weekendPay, value: breakdown.weekend, plus: true },
@@ -41,9 +45,6 @@ export default function MonthBreakdown({ year, month }) {
         { label: t.month.quarterBonus, value: breakdown.bonus, plus: true, bonus: true },
         { label: t.dashboard.casualPay, value: breakdown.casual, plus: true },
         { label: t.month.absences, value: -breakdown.deductions, minus: true },
-      ]
-    : [
-        { label: t.month.quarterBonus, value: bonusLine, plus: true, bonus: true },
       ]
 
   return (
