@@ -1,17 +1,15 @@
 import { useState } from 'react'
-import { GUIDE_SECTIONS } from '../utils/guideContent'
+import { useApp } from '../app/store'
+import { haptics } from '../services/haptics'
+import { GUIDE_SECTIONS } from '../domain/guideContent'
 
 function copyText(text) {
-  if (navigator.clipboard?.writeText) {
-    return navigator.clipboard.writeText(text)
-  }
-  // Fallback for older WebViews
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text)
   return new Promise((resolve, reject) => {
     try {
       const ta = document.createElement('textarea')
       ta.value = text
-      ta.style.position = 'fixed'
-      ta.style.opacity = '0'
+      ta.style.cssText = 'position:fixed;opacity:0'
       document.body.appendChild(ta)
       ta.select()
       document.execCommand('copy')
@@ -21,73 +19,58 @@ function copyText(text) {
   })
 }
 
-function CopyButton({ text, label, copiedLabel, haptic, small }) {
+function CopyButton({ text, label, copiedLabel, small }) {
   const [copied, setCopied] = useState(false)
-
-  function handleCopy(e) {
-    e.stopPropagation()
-    copyText(text).then(() => {
-      haptic?.success?.()
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1600)
-    }).catch(() => {})
-  }
-
   return (
     <button
-      className={`guide-copy-btn${small ? ' guide-copy-btn--small' : ''}${copied ? ' guide-copy-btn--copied' : ''}`}
-      onClick={handleCopy}
-      aria-label={label}
+      type="button"
+      className={`copy-btn${small ? ' copy-btn--sm' : ''}${copied ? ' copy-btn--done' : ''}`}
+      onClick={e => {
+        e.stopPropagation()
+        copyText(text).then(() => {
+          haptics.success()
+          setCopied(true)
+          setTimeout(() => setCopied(false), 1600)
+        }).catch(() => {})
+      }}
     >
       {copied ? copiedLabel : label}
     </button>
   )
 }
 
-export default function Guide({ t, haptic }) {
+export default function Guide() {
+  const { t } = useApp()
   const [openId, setOpenId] = useState(null)
   const g = t.guide
 
-  function toggle(id) {
-    haptic?.selection?.()
-    setOpenId(prev => (prev === id ? null : id))
-  }
-
   return (
-    <div className="page guide-page">
+    <div className="page page--guide">
       <h1 className="page-title">{g.title}</h1>
-      <p className="guide-intro">{g.intro}</p>
+      <p className="muted guide-intro">{g.intro}</p>
 
       {GUIDE_SECTIONS.map(section => {
         const isOpen = openId === section.id
-        const fullText = section.title + '\n\n' + section.blocks.join('\n\n')
         return (
           <div key={section.id} className={`guide-section${isOpen ? ' guide-section--open' : ''}`}>
-            <button className="guide-section__header" onClick={() => toggle(section.id)}>
+            <button type="button" className="guide-section__header"
+              onClick={() => { haptics.light(); setOpenId(prev => (prev === section.id ? null : section.id)) }}>
               <span className="guide-section__icon">{section.icon}</span>
               <span className="guide-section__title">{section.title}</span>
               <span className={`guide-section__chevron${isOpen ? ' guide-section__chevron--open' : ''}`}>›</span>
             </button>
-
             {isOpen && (
               <div className="guide-section__body">
                 {section.blocks.map((block, i) => (
                   <div key={i} className="guide-block">
                     <p className="guide-block__text">{block}</p>
-                    <CopyButton
-                      text={block}
-                      label={g.copy}
-                      copiedLabel={g.copied}
-                      haptic={haptic}
-                      small
-                    />
+                    <CopyButton text={block} label={g.copy} copiedLabel={g.copied} small />
                   </div>
                 ))}
                 <CopyButton
-                  text={fullText}
+                  text={section.title + '\n\n' + section.blocks.join('\n\n')}
                   label={g.copyAll}
                   copiedLabel={g.copied}
-                  haptic={haptic}
                 />
               </div>
             )}
@@ -95,7 +78,7 @@ export default function Guide({ t, haptic }) {
         )
       })}
 
-      <p className="guide-disclaimer">{g.disclaimer}</p>
+      <p className="muted guide-disclaimer">{g.disclaimer}</p>
     </div>
   )
 }

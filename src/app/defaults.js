@@ -1,0 +1,18 @@
+export const DEFAULT_SETTINGS = {
+  currency: 'KRW',
+  laborLaw: 'KR',
+  rates: {},
+  allowances: { job: 0, seniority: 0, bonus: 0, bonusEnabled: false, vacationTotal: 0, bonusMonths: [3, 6, 9, 12] },
+  weekTemplate: {
+    1: { type: 'day', overtime: 0 },
+    2: { type: 'day', overtime: 0 },
+    3: { type: 'day', overtime: 0 },
+    4: { type: 'day', overtime: 0 },
+    5: { type: 'day', overtime: 0 },
+    6: { type: 'off', overtime: 0 },
+    0: { type: 'off', overtime: 0 },
+  },
+  holidayRates: { weekdayBase: 0, weekdayOvertime: 0, weekendBase: 0, weekendOvertime: 0 },
+  nightShift: { bonusMultiplier: 0, bonusHours: 0, overtimeMultiplier: 0 },
+  newYearPromptShown: String(new Date().getFullYear()),
+}

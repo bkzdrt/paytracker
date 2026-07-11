@@ -1,45 +1,56 @@
 import { useState } from 'react'
+import { useApp } from '../app/store'
+import { haptics } from '../services/haptics'
 
-export default function NewYearPrompt({ year, settings, onSave, t }) {
+// Shown once at the start of a new year: confirm rate + allowances
+export default function NewYearPrompt({ year }) {
+  const { t, settings, setSettings } = useApp()
   const prevRate = settings.rates[String(year - 1)] || settings.rates[String(year)] || 0
   const [rate, setRate] = useState(String(prevRate))
   const [allowances, setAllowances] = useState({ ...settings.allowances })
 
-  function handleSave() {
-    const newRate = parseInt(rate) || prevRate
-    onSave(newRate, allowances)
+  function save() {
+    haptics.success()
+    const newRate = parseFloat(rate.replace(',', '.')) || prevRate
+    setSettings(s => ({
+      ...s,
+      rates: { ...s.rates, [String(year)]: newRate },
+      allowances,
+      newYearPromptShown: String(year),
+    }))
   }
 
+  const numField = (label, key) => (
+    <div className="form-group" key={key}>
+      <label className="form-label">{label}</label>
+      <input
+        className="input num"
+        type="number"
+        inputMode="numeric"
+        value={allowances[key]}
+        onChange={e => setAllowances(a => ({ ...a, [key]: parseInt(e.target.value) || 0 }))}
+      />
+    </div>
+  )
+
   return (
-    <div className="overlay">
-      <div className="new-year-prompt">
-        <h2 className="new-year-prompt__title">{t.newYear.title}</h2>
+    <div className="onboarding">
+      <div className="onboarding__form">
+        <h2 className="onboarding__title onboarding__title--sm">{t.newYear.title}</h2>
         <div className="form-group">
           <label className="form-label">{t.newYear.rateLabel.replace('{year}', year)}</label>
           <input
-            className="form-input"
-            type="number"
+            className="input input--big num"
+            type="text"
+            inputMode="decimal"
             value={rate}
-            onChange={e => setRate(e.target.value)}
-            inputMode="numeric"
+            onChange={e => { if (/^\d*[.,]?\d*$/.test(e.target.value)) setRate(e.target.value) }}
           />
         </div>
-        <div className="form-group">
-          <label className="form-label">{t.settings.job}</label>
-          <input className="form-input" type="number" value={allowances.job}
-            onChange={e => setAllowances(a => ({ ...a, job: parseInt(e.target.value)||0 }))} inputMode="numeric" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">{t.settings.seniority}</label>
-          <input className="form-input" type="number" value={allowances.seniority}
-            onChange={e => setAllowances(a => ({ ...a, seniority: parseInt(e.target.value)||0 }))} inputMode="numeric" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">{t.settings.skill}</label>
-          <input className="form-input" type="number" value={allowances.bonus}
-            onChange={e => setAllowances(a => ({ ...a, bonus: parseInt(e.target.value)||0 }))} inputMode="numeric" />
-        </div>
-        <button className="btn-primary" onClick={handleSave}>{t.newYear.continue}</button>
+        {numField(t.settings.job, 'job')}
+        {numField(t.settings.seniority, 'seniority')}
+        {numField(t.settings.skill, 'bonus')}
+        <button type="button" className="btn-primary" onClick={save}>{t.newYear.continue}</button>
       </div>
     </div>
   )

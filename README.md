@@ -1,16 +1,47 @@
-# React + Vite
+# PayTracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Офлайн-PWA для учёта зарплаты и переработок — для работников в Южной Корее (и не только). Устанавливается на телефон как приложение, работает без интернета, все данные хранятся на устройстве.
 
-Currently, two official plugins are available:
+## Возможности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Расчёт по корейскому ТК**: месячная база `ставка × 209`, переработки ×1.5/×2.0, ночные смены, работа в выходные ×1.5, праздничные коэффициенты
+- **Календарь**: тип дня (день/ночь/выходной/отпуск/полдня/прогул/разовая), переработка, заметки — с навигацией по любым годам
+- **Дашборд**: итог месяца с разбивкой, «начислено vs получено» (вычеты), графики по дням и по году, остаток отпуска
+- **Квартальные бонусы**: настраиваемые месяцы выплат, вычет при прогуле
+- **Шаблон недели**: новый день заполняется автоматически по вашему графику
+- **13 языков**: русский, английский, корейский, узбекский, китайский, вьетнамский, тайский, индонезийский, филиппинский, бирманский, кхмерский, лаосский, непальский
+- **Светлая и тёмная темы** (авто по системе)
+- **Данные**: экспорт CSV, резервная копия JSON с восстановлением
+- **Справочник** по трудовому праву Кореи с копированием фрагментов для перевода
 
-## React Compiler
+## Стек
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19 + Vite, без UI-библиотек и тяжёлых зависимостей. Графики — собственные, на div-ах. Хранение — `localStorage` (чанки по месяцам). PWA — `vite-plugin-pwa` (Workbox, полный прекеш, промпт обновления версии).
 
-## Expanding the ESLint configuration
+```
+src/
+  domain/     — типы дней, расчёты зарплаты, даты (чистые функции)
+  services/   — localStorage + миграции, бэкап, вибрация
+  i18n/       — реестр языков, переводы (src/locales/*)
+  app/        — контекст-стор приложения
+  components/ — переиспользуемые блоки (редактор дня, графики, ...)
+  pages/      — Дашборд, Календарь, Справочник, Настройки
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Разработка
+
+```bash
+npm install
+npm run dev       # dev-сервер (без service worker)
+npm run build     # прод-сборка в dist/ + service worker
+npm run preview   # локальный просмотр прод-сборки (SW работает)
+npm run lint
+```
+
+## Деплой
+
+Статический сайт — деплоится на Vercel как есть (`vercel.json` уже настроен: SPA-rewrite и корректное кеширование `sw.js`).
+
+## Миграция данных
+
+Приложение автоматически мигрирует данные старых версий (включая эпоху Telegram Mini App): плоские ключи `pt_days`/`pt_months` → помесячные чанки, корейские идентификаторы типов дней (`주간`, `야간`, …) → семантические (`day`, `night`, …).

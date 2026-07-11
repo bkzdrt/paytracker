@@ -1,139 +1,39 @@
-import { useState, useMemo } from 'react'
-import { useStorage } from './hooks/useStorage'
-import { useTelegram } from './hooks/useTelegram'
-import { useLocale } from './hooks/useLocale'
+import { useState } from 'react'
+import { useApp } from './app/store'
 import Dashboard from './pages/Dashboard'
-import MonthView from './pages/MonthView'
-import Settings from './pages/Settings'
+import CalendarPage from './pages/CalendarPage'
 import Guide from './pages/Guide'
+import Settings from './pages/Settings'
 import BottomNav from './components/BottomNav'
 import Onboarding from './components/Onboarding'
 import NewYearPrompt from './components/NewYearPrompt'
 
 export default function App() {
-  const { loading, settings, days, months, setSettings, setDay, deleteDay, setMonth, initSettings, clearYear, DEFAULT_SETTINGS } = useStorage()
-  const { langCode, haptic } = useTelegram()
-  const { t, lang } = useLocale(langCode)
+  const { settings } = useApp()
   const [tab, setTab] = useState('home')
   const [goToMonth, setGoToMonth] = useState(null)
 
   const currentYear = new Date().getFullYear()
 
-  // Detect new year prompt
-  const showNewYearPrompt = settings && String(settings.newYearPromptShown) !== String(currentYear)
-
-  // Currency format
-  const formatMoney = useMemo(() => {
-    const currencyMap = { KRW: 'ko-KR', RUB: 'ru-RU', USD: 'en-US', EUR: 'de-DE', KZT: 'kk-KZ', UZS: 'uz-UZ' }
-    const currency = settings?.currency || 'KRW'
-    const locale = currencyMap[currency] || 'ko-KR'
-    const fmt = new Intl.NumberFormat(locale, {
-      style: 'currency', currency,
-      minimumFractionDigits: 0, maximumFractionDigits: 0
-    })
-    return (val) => fmt.format(val)
-  }, [settings?.currency])
-
-  // Auto-detect currency on first launch
-  function getDefaultCurrency() {
-    if (langCode?.startsWith('ko')) return 'KRW'
-    if (langCode?.startsWith('ru')) return 'RUB'
-    return 'KRW'
-  }
-
-  if (loading) {
-    return <div className="loading-screen" />
-  }
-
   if (!settings) {
-    return (
-      <Onboarding
-        defaultCurrency={getDefaultCurrency()}
-        onStart={(rate, currency) => {
-          initSettings({
-            ...DEFAULT_SETTINGS,
-            currency,
-            rates: { ...DEFAULT_SETTINGS.rates, [String(currentYear)]: rate },
-            newYearPromptShown: String(currentYear),
-          })
-        }}
-        t={t}
-      />
-    )
+    return <Onboarding />
   }
 
-  if (showNewYearPrompt) {
-    return (
-      <NewYearPrompt
-        year={currentYear}
-        settings={settings}
-        onSave={(rate, allowances) => {
-          setSettings(s => ({
-            ...s,
-            rates: { ...s.rates, [String(currentYear)]: rate },
-            allowances,
-            newYearPromptShown: String(currentYear),
-          }))
-        }}
-        t={t}
-      />
-    )
-  }
-
-  function handleGoToMonth(month) {
-    setGoToMonth(month)
-    setTab('month')
+  if (String(settings.newYearPromptShown) !== String(currentYear)) {
+    return <NewYearPrompt year={currentYear} />
   }
 
   return (
     <div className="app">
-      <main className="main-content">
+      <main className="main">
         {tab === 'home' && (
-          <Dashboard
-            settings={settings}
-            days={days}
-            months={months}
-            setDay={setDay}
-            deleteDay={deleteDay}
-            t={t}
-            lang={lang}
-            formatMoney={formatMoney}
-            haptic={haptic}
-            onGoToMonth={handleGoToMonth}
-          />
+          <Dashboard onGoToMonth={(m) => { setGoToMonth(m); setTab('month') }} />
         )}
-        {tab === 'month' && (
-          <MonthView
-            settings={settings}
-            days={days}
-            months={months}
-            setDay={setDay}
-            deleteDay={deleteDay}
-            setMonth={setMonth}
-            t={t}
-            lang={lang}
-            formatMoney={formatMoney}
-            haptic={haptic}
-            initialMonth={goToMonth}
-          />
-        )}
-        {tab === 'guide' && (
-          <Guide t={t} haptic={haptic} />
-        )}
-        {tab === 'settings' && (
-          <Settings
-            settings={settings}
-            setSettings={setSettings}
-            days={days}
-            months={months}
-            t={t}
-            lang={lang}
-            haptic={haptic}
-            clearYear={clearYear}
-          />
-        )}
+        {tab === 'month' && <CalendarPage key={goToMonth || 'cal'} initialMonth={goToMonth} />}
+        {tab === 'guide' && <Guide />}
+        {tab === 'settings' && <Settings />}
       </main>
-      <BottomNav tab={tab} onChange={setTab} t={t} />
+      <BottomNav tab={tab} onChange={(next) => { setGoToMonth(null); setTab(next) }} />
     </div>
   )
 }

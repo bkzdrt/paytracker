@@ -1,49 +1,68 @@
 import { useState } from 'react'
+import { useApp } from '../app/store'
+import { DEFAULT_SETTINGS } from '../app/defaults'
+import { LANGUAGES } from '../i18n'
+import { haptics } from '../services/haptics'
 
 const CURRENCIES = ['KRW', 'RUB', 'USD', 'EUR', 'KZT', 'UZS']
 
-export default function Onboarding({ defaultCurrency, onStart, t }) {
-  const [rate, setRate] = useState('0')
-  const [currency, setCurrency] = useState(defaultCurrency)
-  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false)
+export default function Onboarding() {
+  const { t, lang, setLang, initSettings } = useApp()
+  const [rate, setRate] = useState('')
+  const [currency, setCurrency] = useState(lang === 'ru' ? 'RUB' : 'KRW')
+  const currentYear = new Date().getFullYear()
 
-  function handleStart() {
-    if (!rate || isNaN(rate)) return
-    onStart(parseInt(rate), currency)
+  const rateNum = parseFloat(rate.replace(',', '.'))
+  const valid = !isNaN(rateNum) && rateNum > 0
+
+  function start() {
+    if (!valid) return
+    haptics.success()
+    initSettings({
+      ...DEFAULT_SETTINGS,
+      currency,
+      laborLaw: currency === 'KRW' ? 'KR' : 'default',
+      rates: { [String(currentYear)]: rateNum },
+      newYearPromptShown: String(currentYear),
+    })
   }
 
   return (
     <div className="onboarding">
-      <div className="onboarding__content">
+      <div className="onboarding__brand">
+        <div className="onboarding__logo num">₩</div>
         <h1 className="onboarding__title">{t.onboarding.title}</h1>
         <p className="onboarding__subtitle">{t.onboarding.subtitle}</p>
-        <div className="form-group">
-          <label className="form-label">{t.onboarding.rateLabel}</label>
-          <div className="onboarding__rate-row">
-            <input
-              className="form-input"
-              type="number"
-              value={rate}
-              onChange={e => setRate(e.target.value)}
-              inputMode="numeric"
-              placeholder="0"
-            />
-            <button className="currency-badge" onClick={() => setShowCurrencyPicker(!showCurrencyPicker)}>
-              {currency}
-            </button>
-          </div>
-          {showCurrencyPicker && (
-            <div className="currency-picker">
-              {CURRENCIES.map(c => (
-                <button key={c} className={`currency-option${c===currency?' active':''}`}
-                  onClick={() => { setCurrency(c); setShowCurrencyPicker(false) }}>
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
+      </div>
+
+      <div className="onboarding__form">
+        <label className="form-label">{t.language}</label>
+        <select className="input input--select" value={lang} onChange={e => setLang(e.target.value)}>
+          {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+        </select>
+
+        <label className="form-label">{t.settings.currency}</label>
+        <div className="chips-row">
+          {CURRENCIES.map(c => (
+            <button key={c} type="button" className={`chip${currency === c ? ' chip--active' : ''}`}
+              onClick={() => { haptics.light(); setCurrency(c) }}>{c}</button>
+          ))}
         </div>
-        <button className="btn-primary" onClick={handleStart} disabled={!rate}>{t.onboarding.start}</button>
+
+        <label className="form-label" htmlFor="ob-rate">{t.onboarding.rateLabel}</label>
+        <input
+          id="ob-rate"
+          className="input input--big num"
+          type="text"
+          inputMode="decimal"
+          placeholder="0"
+          value={rate}
+          onChange={e => { if (/^\d*[.,]?\d*$/.test(e.target.value)) setRate(e.target.value) }}
+        />
+
+        <button type="button" className="btn-primary" disabled={!valid} onClick={start}>
+          {t.onboarding.start}
+        </button>
       </div>
     </div>
   )
