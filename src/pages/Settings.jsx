@@ -5,7 +5,7 @@ import { getRate } from '../domain/payroll'
 import { todayStr } from '../domain/dates'
 import { LANGUAGES } from '../i18n'
 import { haptics } from '../services/haptics'
-import { exportJSON, importJSON } from '../services/backup'
+import { exportBackup, importJSON, backupText, restoreFromText } from '../services/backup'
 
 const DECIMAL_RE = /^[0-9]*[.,]?[0-9]*$/
 const TON_WALLET = 'UQCWSZkplJiZ-UHwOsUwwcNypYEFS3Gq2_ws2tiLwjEN0wCZ'
@@ -85,13 +85,15 @@ export default function Settings() {
   const currentYear = parseInt(todayStr().slice(0, 4))
   const [copied, setCopied] = useState(false)
   const [newYear, setNewYear] = useState('')
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [pasteText, setPasteText] = useState('')
 
   const patch = (fn) => setSettings(s => fn(s))
   const patchAllowances = (key, val) => patch(s => ({ ...s, allowances: { ...s.allowances, [key]: val } }))
 
   const payType = settings.payType || 'hourly'
   const payLabels = {
-    hourly: t.payHourly, daily: t.payDaily, monthly: t.payMonthly, annual: t.payAnnual,
+    hourly: t.payHourly, daily: t.payDaily, weekly: t.payWeekly, monthly: t.payMonthly, annual: t.payAnnual,
   }
 
   function employmentLabel(et) {
@@ -153,6 +155,28 @@ export default function Settings() {
         haptics.success()
         window.alert(t.backupImportDone)
       }
+    } catch {
+      window.alert(t.backupImportError)
+    }
+  }
+
+  function handleCopyData() {
+    copyText(backupText()).then(() => {
+      haptics.success()
+      window.alert(t.dataCopied)
+    }).catch(() => window.alert(t.backupImportError))
+  }
+
+  function handlePasteRestore() {
+    if (!pasteText.trim()) return
+    if (!window.confirm(t.backupImportConfirm)) return
+    try {
+      restoreFromText(pasteText)
+      reloadAll()
+      haptics.success()
+      setPasteOpen(false)
+      setPasteText('')
+      window.alert(t.backupImportDone)
     } catch {
       window.alert(t.backupImportError)
     }
@@ -360,17 +384,42 @@ export default function Settings() {
         ))}
       </SettingsCard>
 
-      {/* Data: export / import */}
+      {/* Data: export / import — file-based plus copy/paste as text for
+          webviews that block downloads (e.g. Telegram) */}
       <SettingsCard title={t.settings.data} help={t.help.data}>
         <div className="data-actions">
           <button type="button" className="btn-secondary data-actions__btn"
-            onClick={() => { exportJSON(); haptics.success() }}>
+            onClick={async () => { if (await exportBackup() !== 'cancelled') haptics.success() }}>
             ⬇ {t.exportData}
           </button>
           <button type="button" className="btn-secondary data-actions__btn" onClick={handleImport}>
             ⬆ {t.importData}
           </button>
         </div>
+        <div className="data-actions data-actions--secondary">
+          <button type="button" className="btn-secondary data-actions__btn" onClick={handleCopyData}>
+            {t.exportCopy}
+          </button>
+          <button type="button"
+            className={`btn-secondary data-actions__btn${pasteOpen ? ' data-actions__btn--active' : ''}`}
+            onClick={() => { haptics.light(); setPasteOpen(o => !o) }}>
+            {t.importPaste}
+          </button>
+        </div>
+        {pasteOpen && (
+          <div className="paste-box">
+            <textarea
+              className="input paste-box__area"
+              rows={4}
+              placeholder={t.pasteHint}
+              value={pasteText}
+              onChange={e => setPasteText(e.target.value)}
+            />
+            <button type="button" className="btn-primary" disabled={!pasteText.trim()} onClick={handlePasteRestore}>
+              {t.restore}
+            </button>
+          </div>
+        )}
       </SettingsCard>
 
       {/* Support */}

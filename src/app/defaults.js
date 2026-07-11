@@ -2,7 +2,7 @@ export const DEFAULT_SETTINGS = {
   currency: 'KRW',
   laborLaw: 'KR',
   payType: 'hourly',
-  payRates: { hourly: {}, daily: {}, monthly: {}, annual: {} },
+  payRates: { hourly: {}, daily: {}, weekly: {}, monthly: {}, annual: {} },
   profile: { company: '', employment: 'regular' },
   allowances: { job: 0, seniority: 0, bonus: 0, bonusEnabled: false, vacationTotal: 0, bonusMonths: [3, 6, 9, 12] },
   weekTemplate: {

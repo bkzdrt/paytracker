@@ -130,6 +130,7 @@ export function getHourlyRate(settings, year) {
   const rate = getRate(settings, year)
   switch (settings?.payType) {
     case 'daily': return rate / 8
+    case 'weekly': return rate * 52 / 12 / 209
     case 'monthly': return rate / 209
     case 'annual': return rate / 12 / 209
     default: return rate
@@ -137,9 +138,10 @@ export function getHourlyRate(settings, year) {
 }
 
 // Guaranteed monthly base for base-mode schemes
-function monthlyBaseOf(settings, year) {
+export function monthlyBaseOf(settings, year) {
   const rate = getRate(settings, year)
   switch (settings?.payType) {
+    case 'weekly': return rate * 52 / 12
     case 'monthly': return rate
     case 'annual': return rate / 12
     default: return rate * 209

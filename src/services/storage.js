@@ -87,9 +87,10 @@ function normalizeSettings(settings) {
   }
   // v2 → v3: single hourly `rates` table → per-scheme payRates + profile; KRW only
   if (!next.payRates) {
-    next.payRates = { hourly: { ...(next.rates || {}) }, daily: {}, monthly: {}, annual: {} }
+    next.payRates = { hourly: { ...(next.rates || {}) }, daily: {}, weekly: {}, monthly: {}, annual: {} }
   } else {
-    for (const pt of ['hourly', 'daily', 'monthly', 'annual']) next.payRates[pt] ||= {}
+    next.payRates = { ...next.payRates }
+    for (const pt of ['hourly', 'daily', 'weekly', 'monthly', 'annual']) next.payRates[pt] ||= {}
   }
   delete next.rates
   next.payType ||= 'hourly'

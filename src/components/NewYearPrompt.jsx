@@ -12,7 +12,7 @@ export default function NewYearPrompt({ year }) {
   const [allowances, setAllowances] = useState({ ...settings.allowances })
 
   const payLabels = {
-    hourly: t.payHourly, daily: t.payDaily, monthly: t.payMonthly, annual: t.payAnnual,
+    hourly: t.payHourly, daily: t.payDaily, weekly: t.payWeekly, monthly: t.payMonthly, annual: t.payAnnual,
   }
 
   function save() {

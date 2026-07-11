@@ -1048,7 +1048,18 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .btn-stack { display: flex; flex-direction: column; gap: 8px; }
 
 .data-actions { display: flex; gap: 8px; }
+.data-actions--secondary { margin-top: 8px; }
 .data-actions__btn { flex: 1; padding: 12px 10px; font-weight: 600; }
+.data-actions__btn--active { border-color: var(--accent); color: var(--accent-strong); }
+
+.paste-box { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.paste-box__area {
+  resize: vertical;
+  min-height: 88px;
+  font-family: var(--font-num);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
 
 .icon-btn {
   flex: none;

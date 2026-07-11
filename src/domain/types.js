@@ -26,7 +26,7 @@ export function canHaveOvertime(type) {
 }
 
 // Pay schemes — how the rate the user enters is interpreted
-export const PAY_TYPES = ['hourly', 'daily', 'monthly', 'annual']
+export const PAY_TYPES = ['hourly', 'daily', 'weekly', 'monthly', 'annual']
 
 // Korean employment forms; labels localized via t.employmentTypes[id]
 export const EMPLOYMENT_TYPES = [

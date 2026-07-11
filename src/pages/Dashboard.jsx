@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../app/store'
 import { getMonthDays, monthKeyOf, todayStr } from '../domain/dates'
-import { calcMonthGross, calcMonthStats, getRate, isSumMode, vacationUsedInYear } from '../domain/payroll'
+import { calcMonthGross, calcMonthStats, getRate, isSumMode, monthlyBaseOf, vacationUsedInYear } from '../domain/payroll'
 import { haptics } from '../services/haptics'
 import BarChart from '../components/BarChart'
 import MonthBreakdown from '../components/MonthBreakdown'
@@ -115,8 +115,8 @@ export default function Dashboard({ onGoToMonth }) {
         {!sumMode && settings.payType === 'hourly' && (
           <div className="hero__sub">{t.dashboard.base}: <span className="num">{formatMoney(rate * 209)}</span> ×209</div>
         )}
-        {!sumMode && (settings.payType === 'monthly' || settings.payType === 'annual') && (
-          <div className="hero__sub">{t.baseSalary}: <span className="num">{formatMoney(settings.payType === 'annual' ? rate / 12 : rate)}</span></div>
+        {!sumMode && settings.payType !== 'hourly' && (
+          <div className="hero__sub">{t.baseSalary}: <span className="num">{formatMoney(monthlyBaseOf(settings, year))}</span></div>
         )}
         {net && (
           <div className="hero__net">

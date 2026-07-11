@@ -1,62 +1,77 @@
 import { dumpAll, restoreAll } from './storage'
 
+function stamp() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+export function backupText() {
+  return JSON.stringify(dumpAll(), null, 2)
+}
+
 function download(blob, filename) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
+  document.body.appendChild(a)
   a.click()
-  URL.revokeObjectURL(url)
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(url), 4000)
 }
 
-export function exportJSON() {
-  const data = dumpAll()
-  const stamp = new Date().toISOString().slice(0, 10)
-  download(
-    new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
-    `paytracker-backup-${stamp}.json`
-  )
+// Export cascade: native share sheet (works in mobile browsers and lets the
+// user save to Files or send to a chat) → plain download (desktop).
+// In-app webviews (e.g. Telegram) silently ignore downloads — for those the
+// UI offers the copy-as-text path instead.
+export async function exportBackup() {
+  const json = backupText()
+  const filename = `paytracker-backup-${stamp()}.json`
+  const file = new File([json], filename, { type: 'application/json' })
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'PayTracker' })
+      return 'shared'
+    } catch (e) {
+      if (e.name === 'AbortError') return 'cancelled'
+      // fall through to download
+    }
+  }
+  download(new Blob([json], { type: 'application/json' }), filename)
+  return 'downloaded'
 }
 
-// Opens a file picker, restores the chosen backup. Resolves true on success.
+export function restoreFromText(text) {
+  restoreAll(JSON.parse(text))
+}
+
+// File-picker import. The input must be in the DOM for some webviews.
 export function importJSON() {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = 'application/json,.json'
+    input.accept = 'application/json,.json,text/plain'
+    input.style.cssText = 'position:fixed;left:-9999px'
+    document.body.appendChild(input)
+    const cleanup = () => document.body.removeChild(input)
     input.onchange = () => {
       const file = input.files?.[0]
-      if (!file) { resolve(false); return }
+      if (!file) { cleanup(); resolve(false); return }
       const reader = new FileReader()
       reader.onload = () => {
         try {
-          restoreAll(JSON.parse(reader.result))
+          restoreFromText(reader.result)
+          cleanup()
           resolve(true)
         } catch (e) {
+          cleanup()
           reject(e)
         }
       }
-      reader.onerror = () => reject(reader.error)
+      reader.onerror = () => { cleanup(); reject(reader.error) }
       reader.readAsText(file)
     }
+    input.oncancel = () => { cleanup(); resolve(false) }
     input.click()
   })
-}
-
-export function exportCSV(days, months, year) {
-  const header = 'Date,Weekday,Type,Gross,Overtime Hours,Note,Month Net\n'
-  const rows = Object.keys(days)
-    .filter(k => k.startsWith(String(year)))
-    .sort()
-    .map(dateStr => {
-      const d = days[dateStr]
-      const weekday = new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' })
-      const net = months[dateStr.slice(0, 7)]?.net ?? ''
-      const note = `"${String(d.note || '').replace(/"/g, '""')}"`
-      return [dateStr, weekday, d.type, d.gross ?? 0, d.overtime ?? 0, note, net].join(',')
-    })
-  download(
-    new Blob(['﻿' + header + rows.join('\n')], { type: 'text/csv;charset=utf-8;' }),
-    `paytracker-${year}.csv`
-  )
 }
