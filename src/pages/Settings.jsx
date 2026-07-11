@@ -51,6 +51,32 @@ function DecimalInput({ value, onCommit, className = 'input input--sm num' }) {
   )
 }
 
+// Settings card with a "?" help toggle in the top-right corner
+function SettingsCard({ title, help, extra, children }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <section className="card">
+      <div className="card__title-row">
+        {title ? <h2 className="card__title card__title--inline">{title}</h2> : <span />}
+        <div className="card__actions">
+          {extra}
+          {help && (
+            <button
+              type="button"
+              className={`help-btn${open ? ' help-btn--open' : ''}`}
+              aria-label="?"
+              aria-expanded={open}
+              onClick={() => { haptics.light(); setOpen(o => !o) }}
+            >?</button>
+          )}
+        </div>
+      </div>
+      {open && <p className="card-help">{help}</p>}
+      {children}
+    </section>
+  )
+}
+
 export default function Settings() {
   const {
     t, lang, intl, theme, setLang, setTheme,
@@ -87,10 +113,19 @@ export default function Settings() {
       ...s,
       payRates: {
         ...s.payRates,
-        [s.payType]: { ...s.payRates[s.payType], [String(y)]: getRate(s, currentYear) },
+        [s.payType]: { ...s.payRates[s.payType], [String(y)]: 0 },
       },
     }))
     setNewYear('')
+  }
+
+  function removeYear(year) {
+    haptics.light()
+    patch(s => {
+      const table = { ...s.payRates[s.payType] }
+      delete table[year]
+      return { ...s, payRates: { ...s.payRates, [s.payType]: table } }
+    })
   }
 
   // Quarterly bonus
@@ -127,8 +162,7 @@ export default function Settings() {
     <div className="page page--settings">
 
       {/* Language & theme */}
-      <section className="card">
-        <h2 className="card__title">{t.language}</h2>
+      <SettingsCard title={t.language} help={t.help.language}>
         <select className="input input--select" value={lang} onChange={e => setLang(e.target.value)}>
           {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
         </select>
@@ -144,10 +178,10 @@ export default function Settings() {
             ))}
           </div>
         </div>
-      </section>
+      </SettingsCard>
 
       {/* Profile: company + employment type */}
-      <section className="card">
+      <SettingsCard title={t.profile} help={t.help.profile}>
         <label className="form-label" htmlFor="st-company">{t.company}</label>
         <input
           id="st-company"
@@ -167,12 +201,11 @@ export default function Settings() {
             <option key={et.id} value={et.id}>{employmentLabel(et)}</option>
           ))}
         </select>
-      </section>
+      </SettingsCard>
 
-      {/* Pay: scheme + rate. Rates are stored per scheme, so switching
-          schemes never loses previously entered values. */}
-      <section className="card">
-        <h2 className="card__title">{t.pay}</h2>
+      {/* Pay: scheme + per-year rates. Rates are stored per scheme, so
+          switching schemes never loses previously entered values. */}
+      <SettingsCard title={t.pay} help={t.help.pay}>
         <div className="chips-row">
           {PAY_TYPES.map(pt => (
             <button key={pt} type="button" className={`chip${payType === pt ? ' chip--active' : ''}`}
@@ -181,23 +214,29 @@ export default function Settings() {
             </button>
           ))}
         </div>
-        {rateYears.map(year => (
-          <div key={`${payType}-${year}`}
-            className={`settings-row${year === String(currentYear) ? ' settings-row--current' : ''}${year === rateYears[0] ? ' settings-row--gap' : ''}`}>
-            <span className="settings-row__label">{payLabels[payType]} · <span className="num">{year}</span></span>
-            <DecimalInput
-              value={settings.payRates?.[payType]?.[year] ?? (year === String(currentYear) ? getRate(settings, currentYear) : 0)}
-              className="input input--rate num"
-              onCommit={v => patch(s => ({
-                ...s,
-                payRates: {
-                  ...s.payRates,
-                  [s.payType]: { ...s.payRates[s.payType], [year]: v },
-                },
-              }))}
-            />
-          </div>
-        ))}
+        {rateYears.map((year, i) => {
+          const deletable = parseInt(year) > currentYear
+          return (
+            <div key={`${payType}-${year}`}
+              className={`settings-row settings-row--rate${year === String(currentYear) ? ' settings-row--current' : ''}${i === 0 ? ' settings-row--gap' : ''}`}>
+              <span className="settings-row__label">{payLabels[payType]} · <span className="num">{year}</span></span>
+              <DecimalInput
+                value={settings.payRates?.[payType]?.[year] ?? (year === String(currentYear) ? getRate(settings, currentYear) : 0)}
+                className="input input--rate num"
+                onCommit={v => patch(s => ({
+                  ...s,
+                  payRates: {
+                    ...s.payRates,
+                    [s.payType]: { ...s.payRates[s.payType], [year]: v },
+                  },
+                }))}
+              />
+              {deletable
+                ? <button type="button" className="icon-btn" aria-label="✕" onClick={() => removeYear(year)}>✕</button>
+                : <span className="icon-btn icon-btn--ghost" aria-hidden="true" />}
+            </div>
+          )
+        })}
         <div className="settings-row">
           <input
             className="input input--sm num"
@@ -207,11 +246,10 @@ export default function Settings() {
           />
           <button type="button" className="btn-secondary" onClick={addYear}>{t.settings.addYear}</button>
         </div>
-      </section>
+      </SettingsCard>
 
       {/* Week template */}
-      <section className="card">
-        <h2 className="card__title">{t.settings.weekTemplate}</h2>
+      <SettingsCard title={t.settings.weekTemplate} help={t.help.weekTemplate}>
         {[1, 2, 3, 4, 5, 6, 0].map(dow => (
           <div key={dow} className="settings-row settings-row--template">
             <span className="settings-row__label">{t.weekdays.short[dow]}</span>
@@ -236,11 +274,10 @@ export default function Settings() {
             />
           </div>
         ))}
-      </section>
+      </SettingsCard>
 
       {/* Allowances */}
-      <section className="card">
-        <h2 className="card__title">{t.settings.allowances}</h2>
+      <SettingsCard title={t.settings.allowances} help={t.help.allowances}>
         {[['job', t.settings.job], ['seniority', t.settings.seniority], ['vacationTotal', t.settings.vacationTotal]].map(([key, label]) => (
           <div key={key} className="settings-row">
             <span className="settings-row__label">{label}</span>
@@ -248,18 +285,20 @@ export default function Settings() {
               onCommit={v => patchAllowances(key, v)} />
           </div>
         ))}
-      </section>
+      </SettingsCard>
 
       {/* Quarterly bonus */}
-      <section className="card">
-        <div className="card__title-row">
-          <h2 className="card__title card__title--inline">{t.settings.skill}</h2>
+      <SettingsCard
+        title={t.settings.skill}
+        help={t.help.bonus}
+        extra={(
           <label className="switch">
             <input type="checkbox" checked={settings.allowances.bonusEnabled}
               onChange={e => patchAllowances('bonusEnabled', e.target.checked)} />
             <span className="switch__slider" />
           </label>
-        </div>
+        )}
+      >
         {settings.allowances.bonusEnabled && (
           <>
             <div className="settings-row">
@@ -285,11 +324,10 @@ export default function Settings() {
             )}
           </>
         )}
-      </section>
+      </SettingsCard>
 
       {/* Night shift */}
-      <section className="card">
-        <h2 className="card__title">{t.settings.nightShift}</h2>
+      <SettingsCard title={t.settings.nightShift} help={t.help.nightShift}>
         {[
           { key: 'bonusMultiplier', label: t.settings.nightBonusMultiplier, hint: t.settings.nightBonusHint },
           { key: 'bonusHours', label: t.settings.nightBonusHours },
@@ -304,11 +342,10 @@ export default function Settings() {
               onCommit={v => patch(s => ({ ...s, nightShift: { ...(s.nightShift || {}), [key]: v } }))} />
           </div>
         ))}
-      </section>
+      </SettingsCard>
 
       {/* Public holidays */}
-      <section className="card">
-        <h2 className="card__title">{t.settings.holidayRates}</h2>
+      <SettingsCard title={t.settings.holidayRates} help={t.help.holidayRates}>
         {[
           ['weekdayBase', t.settings.holidayWeekdayBase],
           ['weekdayOvertime', t.settings.holidayWeekdayOT],
@@ -321,11 +358,10 @@ export default function Settings() {
               onCommit={v => patch(s => ({ ...s, holidayRates: { ...s.holidayRates, [key]: v } }))} />
           </div>
         ))}
-      </section>
+      </SettingsCard>
 
       {/* Data: export / import */}
-      <section className="card">
-        <h2 className="card__title">{t.settings.data}</h2>
+      <SettingsCard title={t.settings.data} help={t.help.data}>
         <div className="data-actions">
           <button type="button" className="btn-secondary data-actions__btn"
             onClick={() => { exportJSON(); haptics.success() }}>
@@ -335,11 +371,10 @@ export default function Settings() {
             ⬆ {t.importData}
           </button>
         </div>
-      </section>
+      </SettingsCard>
 
       {/* Support */}
-      <section className="card card--support">
-        <h2 className="card__title">{t.support.title}</h2>
+      <SettingsCard title={t.support.title} help={t.help.support}>
         <div className="stars-grid">
           {[50, 100, 200, 500].map(amount => (
             <a key={amount} className="btn-stars"
@@ -363,7 +398,7 @@ export default function Settings() {
           {t.support.feedback}
         </a>
         <p className="muted card__note">{t.support.feedbackHint}</p>
-      </section>
+      </SettingsCard>
     </div>
   )
 }
