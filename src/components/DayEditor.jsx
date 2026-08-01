@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useApp } from '../app/store'
+import { useSheet } from './useSheet'
 import { DAY_TYPES, canHaveOvertime } from '../domain/types'
 import { calcDayGross, getHourlyRate, autoOvertimeOf } from '../domain/payroll'
 import { todayStr, isWeekend } from '../domain/dates'
@@ -48,13 +49,7 @@ export default function DayEditor({ dateStr, onClose }) {
   const rawLabel = date.toLocaleDateString(intl, { weekday: 'long', day: 'numeric', month: 'long' })
   const dateLabel = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1)
 
-  // Swipe down / Escape to close
-  const touchY = useRef(null)
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  const { close, overlayProps, sheetProps } = useSheet(onClose)
 
   function save() {
     haptics.medium()
@@ -66,30 +61,21 @@ export default function DayEditor({ dateStr, onClose }) {
       isHoliday: isHoliday || undefined,
       bonusDeduction: type === 'absence' && bonusDeduction > 0 ? bonusDeduction : undefined,
     })
-    onClose()
+    close()
   }
 
   function clear() {
     if (window.confirm(t.dayEditor.confirmClear)) {
       deleteDay(dateStr)
-      onClose()
+      close()
     }
   }
 
   const showOvertime = canHaveOvertime(type)
 
   return (
-    <div className="sheet-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-label={dateLabel}
-        onTouchStart={e => { touchY.current = e.touches[0].clientY }}
-        onTouchEnd={e => {
-          if (touchY.current != null && e.changedTouches[0].clientY - touchY.current > 80) onClose()
-          touchY.current = null
-        }}
-      >
+    <div {...overlayProps}>
+      <div {...sheetProps} role="dialog" aria-modal="true" aria-label={dateLabel}>
         <div className="sheet__handle" />
         <div className="sheet__date">{dateLabel}</div>
 

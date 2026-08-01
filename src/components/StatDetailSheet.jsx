@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
 import { useApp } from '../app/store'
 import { WORKED_TYPES } from '../domain/types'
+import { useSheet } from './useSheet'
 
 // Rows contributing to a given dashboard stat, in date order.
 function rowsFor(statKey, monthDayKeys, days, t) {
@@ -38,13 +38,7 @@ function rowsFor(statKey, monthDayKeys, days, t) {
 export default function StatDetailSheet({ statKey, title, value, monthDayKeys, days, onClose }) {
   const { t, intl } = useApp()
   const rows = rowsFor(statKey, monthDayKeys, days, t)
-
-  const touchY = useRef(null)
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  const { overlayProps, sheetProps } = useSheet(onClose)
 
   const weekday = (dateStr) => {
     const wd = new Date(dateStr).toLocaleDateString(intl, { weekday: 'short' })
@@ -52,17 +46,8 @@ export default function StatDetailSheet({ statKey, title, value, monthDayKeys, d
   }
 
   return (
-    <div className="sheet-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-label={title}
-        onTouchStart={e => { touchY.current = e.touches[0].clientY }}
-        onTouchEnd={e => {
-          if (touchY.current != null && e.changedTouches[0].clientY - touchY.current > 80) onClose()
-          touchY.current = null
-        }}
-      >
+    <div {...overlayProps}>
+      <div {...sheetProps} role="dialog" aria-modal="true" aria-label={title}>
         <div className="sheet__handle" />
         <div className="sheet__date">{title} · <span className="num">{value ?? rows.length}</span></div>
 

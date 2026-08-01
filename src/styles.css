@@ -813,6 +813,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { to { opacity: 0; } }
+
+.sheet-overlay--closing { animation: fade-out 0.2s ease-in forwards; }
 
 .sheet {
   width: min(100%, 560px);
@@ -826,6 +829,23 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   gap: 13px;
   animation: sheet-up 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* Once dragged, the entry animation must stay off — it drives transform too */
+.sheet--dragged { animation: none; }
+
+/* Snap back after a drag that did not go far enough to dismiss */
+.sheet--dragged:not(.sheet--closing) {
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.sheet--closing {
+  animation: sheet-down 0.2s ease-in forwards;
+  transition: none;
+}
+
+@keyframes sheet-down {
+  to { transform: translateY(100%); }
 }
 
 @keyframes sheet-up {
