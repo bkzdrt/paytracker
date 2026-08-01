@@ -6,6 +6,7 @@ import { haptics } from '../services/haptics'
 import BarChart from '../components/BarChart'
 import MonthBreakdown from '../components/MonthBreakdown'
 import DayEditor from '../components/DayEditor'
+import StatDetailSheet from '../components/StatDetailSheet'
 
 export default function Dashboard({ onGoToMonth }) {
   const { t, intl, settings, days, months, ensureYear, formatMoney } = useApp()
@@ -16,6 +17,7 @@ export default function Dashboard({ onGoToMonth }) {
 
   const [view, setView] = useState({ year: currentYear, month: currentMonth })
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [statDetail, setStatDetail] = useState(null)
 
   const { year, month } = view
   useEffect(() => { ensureYear(year) }, [year, ensureYear])
@@ -84,11 +86,11 @@ export default function Dashboard({ onGoToMonth }) {
   [months, year])
 
   const statChips = [
-    { label: t.dashboard.workedDays, value: stats.worked },
-    { label: t.dashboard.daysOff, value: stats.off },
-    { label: t.dashboard.vacation, value: stats.vacation % 1 === 0 ? stats.vacation : stats.vacation.toFixed(1) },
-    { label: t.dashboard.overtime, value: stats.overtime % 1 === 0 ? stats.overtime : stats.overtime.toFixed(1) },
-    { label: t.dashboard.holidays, value: stats.holidays },
+    { key: 'worked', label: t.dashboard.workedDays, value: stats.worked % 1 === 0 ? stats.worked : stats.worked.toFixed(1) },
+    { key: 'off', label: t.dashboard.daysOff, value: stats.off },
+    { key: 'vacation', label: t.dashboard.vacation, value: stats.vacation % 1 === 0 ? stats.vacation : stats.vacation.toFixed(1) },
+    { key: 'overtime', label: t.dashboard.overtime, value: stats.overtime % 1 === 0 ? stats.overtime : stats.overtime.toFixed(1) },
+    { key: 'holidays', label: t.dashboard.holidays, value: stats.holidays },
   ]
 
   const company = settings.profile?.company
@@ -134,11 +136,16 @@ export default function Dashboard({ onGoToMonth }) {
       )}
 
       <div className="stats-row">
-        {statChips.map(({ label, value }) => (
-          <div key={label} className="stat-chip">
+        {statChips.map(({ key, label, value }) => (
+          <button
+            key={key}
+            type="button"
+            className="stat-chip"
+            onClick={() => { haptics.light(); setStatDetail({ key, label, value }) }}
+          >
             <span className="stat-chip__value num">{value}</span>
             <span className="stat-chip__label">{label}</span>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -182,6 +189,17 @@ export default function Dashboard({ onGoToMonth }) {
       )}
 
       {sheetOpen && <DayEditor dateStr={today} onClose={() => setSheetOpen(false)} />}
+
+      {statDetail && (
+        <StatDetailSheet
+          statKey={statDetail.key}
+          title={statDetail.label}
+          value={statDetail.value}
+          monthDayKeys={monthDayKeys}
+          days={days}
+          onClose={() => setStatDetail(null)}
+        />
+      )}
     </div>
   )
 }

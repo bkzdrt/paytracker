@@ -39,6 +39,7 @@ export default function MonthBreakdown({ year, month }) {
     : [
         { label: baseLabel, value: breakdown.base, always: true },
         { label: t.month.overtimePay, value: breakdown.overtime, plus: true },
+        { label: t.month.nightPay, value: breakdown.night, plus: true },
         { label: t.month.holidayPay, value: breakdown.holiday, plus: true },
         { label: t.month.weekendPay, value: breakdown.weekend, plus: true },
         { label: t.month.allowancesPay, value: breakdown.allowances, plus: true },

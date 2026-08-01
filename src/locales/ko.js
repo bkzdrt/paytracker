@@ -31,6 +31,7 @@ export default {
     quarterBonus: '분기 보너스',
     baseKR: '기본급 (×209)',
     overtimePay: '초과근무',
+    nightPay: '야간수당',
     holidayPay: '공휴일',
     weekendPay: '주말',
     allowancesPay: '수당',

@@ -1,4 +1,8 @@
 import { normalizeType } from '../domain/types'
+import { DEFAULT_SETTINGS } from '../app/defaults'
+
+// True when every value in a rates block is 0/undefined — i.e. never configured.
+const allZero = (obj) => !obj || Object.values(obj).every(v => !v)
 
 // localStorage layout:
 //   pt_prefs            — { lang, theme }        (device-level, survives data resets)
@@ -93,9 +97,53 @@ function normalizeSettings(settings) {
     for (const pt of ['hourly', 'daily', 'weekly', 'monthly', 'annual']) next.payRates[pt] ||= {}
   }
   delete next.rates
+  // v3 → v4: fixed job/seniority allowances → editable custom list.
+  // Non-zero legacy amounts are preserved as unnamed custom rows.
+  if (next.allowances && !Array.isArray(next.allowances.custom)) {
+    const a = { ...next.allowances }
+    const custom = []
+    if (a.job) custom.push({ id: 'legacy-job', name: '', amount: a.job })
+    if (a.seniority) custom.push({ id: 'legacy-seniority', name: '', amount: a.seniority })
+    a.custom = custom
+    delete a.job
+    delete a.seniority
+    next.allowances = a
+  }
   next.payType ||= 'hourly'
   next.profile ||= { company: '', employment: 'regular' }
   next.currency = 'KRW'
+  // v4: prefill holiday rates with Korean Labor Standards Act values for existing
+  // users who never configured them. One-time — later edits (incl. 0) stay.
+  if (!next.krDefaultsApplied) {
+    if (allZero(next.holidayRates)) next.holidayRates = { ...DEFAULT_SETTINGS.holidayRates }
+    next.krDefaultsApplied = true
+  }
+  // v5: night shift raw coefficients (or empty) → clock schedule + premium %.
+  // Legacy bonusMultiplier carries over as the premium; hours come from the
+  // 22:00–06:00 default window. Idempotent (skips already-migrated settings).
+  if (!next.nightShift || next.nightShift.start === undefined) {
+    const old = next.nightShift || {}
+    const premiumPercent = old.bonusMultiplier ? Math.round(old.bonusMultiplier * 100) : 50
+    // A legacy 7.5 h night on a 22:00–06:00 shift meant a 30-min unpaid break.
+    const breakMinutes = old.bonusHours ? Math.max(0, Math.round((8 - old.bonusHours) * 60)) : 30
+    next.nightShift = {
+      start: '22:00',
+      end: '06:00',
+      premiumPercent,
+      breakMinutes,
+      overtimeMultiplier: old.overtimeMultiplier || 1.5,
+    }
+  }
+  // v6: configurable night window + break for settings already on the schedule
+  // shape. Rebuilt rather than mutated — `next` is a shallow copy, so writing
+  // through `next.nightShift` would also change the object we diff against and
+  // the migration would never be persisted.
+  next.nightShift = {
+    windowStart: '22:00',
+    windowEnd: '06:00',
+    breakMinutes: 30,
+    ...next.nightShift,
+  }
   return next
 }
 

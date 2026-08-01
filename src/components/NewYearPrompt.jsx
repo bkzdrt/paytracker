@@ -42,6 +42,25 @@ export default function NewYearPrompt({ year }) {
     </div>
   )
 
+  const setCustomAmount = (id, val) =>
+    setAllowances(a => ({
+      ...a,
+      custom: (a.custom || []).map(c => (c.id === id ? { ...c, amount: val } : c)),
+    }))
+
+  const customField = (item) => (
+    <div className="form-group" key={item.id}>
+      <label className="form-label">{item.name || t.settings.allowanceName}</label>
+      <input
+        className="input num"
+        type="number"
+        inputMode="numeric"
+        value={item.amount}
+        onChange={e => setCustomAmount(item.id, parseInt(e.target.value) || 0)}
+      />
+    </div>
+  )
+
   return (
     <div className="onboarding">
       <div className="onboarding__form">
@@ -56,8 +75,7 @@ export default function NewYearPrompt({ year }) {
             onChange={e => { if (/^\d*[.,]?\d*$/.test(e.target.value)) setRate(e.target.value) }}
           />
         </div>
-        {numField(t.settings.job, 'job')}
-        {numField(t.settings.seniority, 'seniority')}
+        {(allowances.custom || []).map(customField)}
         {numField(t.settings.skill, 'bonus')}
         <button type="button" className="btn-primary" onClick={save}>{t.newYear.continue}</button>
       </div>

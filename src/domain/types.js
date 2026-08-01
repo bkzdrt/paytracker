@@ -17,8 +17,8 @@ export function normalizeType(type) {
   return LEGACY_TYPE_MAP[type] || 'day'
 }
 
-// Worked shifts — days that count as "worked" in stats
-export const WORKED_TYPES = ['day', 'night', 'vacation', 'half', 'absence']
+// Worked shifts — days that count as "worked" in stats (actual shifts only)
+export const WORKED_TYPES = ['day', 'night', 'half']
 
 // Types that can have overtime hours
 export function canHaveOvertime(type) {

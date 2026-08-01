@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useApp } from '../app/store'
 import { DAY_TYPES, canHaveOvertime } from '../domain/types'
-import { calcDayGross, getHourlyRate } from '../domain/payroll'
+import { calcDayGross, getHourlyRate, autoOvertimeOf } from '../domain/payroll'
 import { todayStr, isWeekend } from '../domain/dates'
 import { haptics } from '../services/haptics'
 
@@ -10,7 +10,10 @@ import { haptics } from '../services/haptics'
 function defaultDay(dateStr, settings) {
   if (dateStr >= todayStr()) {
     const tmpl = settings?.weekTemplate?.[String(new Date(dateStr).getDay())]
-    if (tmpl) return { type: tmpl.type, overtime: tmpl.overtime || 0 }
+    if (tmpl) {
+      const overtime = tmpl.overtime || (tmpl.type === 'night' ? autoOvertimeOf(settings?.nightShift) : 0)
+      return { type: tmpl.type, overtime }
+    }
   }
   return { type: 'day', overtime: 0 }
 }
@@ -31,6 +34,7 @@ export default function DayEditor({ dateStr, onClose }) {
   )
 
   const rate = getHourlyRate(settings, parseInt(dateStr.slice(0, 4)))
+  const autoOt = autoOvertimeOf(settings?.nightShift)
   const isCasual = type === 'casual'
   const weekend = isWeekend(dateStr)
   const gross = isCasual
@@ -95,7 +99,13 @@ export default function DayEditor({ dateStr, onClose }) {
               key={dt}
               type="button"
               className={`chip chip--${dt}${type === dt ? ' chip--active' : ''}`}
-              onClick={() => { haptics.light(); setType(dt) }}
+              onClick={() => {
+                haptics.light()
+                setType(dt)
+                // A night shift longer than the standard day carries its own
+                // overtime — offer it, but never overwrite hours already entered.
+                if (dt === 'night' && !overtime) setOvertime(autoOvertimeOf(settings?.nightShift))
+              }}
             >
               <span className={`dot dot--${dt}`} />
               {t.dayTypes[dt]}
@@ -142,7 +152,12 @@ export default function DayEditor({ dateStr, onClose }) {
 
         {showOvertime && (
           <div className="ot-section">
-            <span className="field-row__label">{t.dayEditor.overtime}</span>
+            <span className="field-row__label">
+              {t.dayEditor.overtime}
+              {type === 'night' && autoOt > 0 && (
+                <small className="muted"> · {t.dayEditor.otFromShift.replace('{h}', autoOt)}</small>
+              )}
+            </span>
             <div className="ot-controls">
               <button type="button" className="ot-btn" aria-label="−0.5h"
                 onClick={() => { haptics.light(); setOvertime(v => Math.max(0, +(v - 0.5).toFixed(1))) }}>−</button>

@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useApp } from '../app/store'
 import { DAY_TYPES, PAY_TYPES, EMPLOYMENT_TYPES } from '../domain/types'
-import { getRate } from '../domain/payroll'
+import {
+  getRate, getHourlyRate, shiftPaidHoursOf, shiftSegments, paidNightHoursOf, autoOvertimeOf,
+} from '../domain/payroll'
 import { todayStr } from '../domain/dates'
 import { LANGUAGES } from '../i18n'
 import { haptics } from '../services/haptics'
 import { exportBackup, importJSON, backupText, restoreFromText } from '../services/backup'
 
 const DECIMAL_RE = /^[0-9]*[.,]?[0-9]*$/
+const uid = () => (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2, 10))
 const TON_WALLET = 'UQCWSZkplJiZ-UHwOsUwwcNypYEFS3Gq2_ws2tiLwjEN0wCZ'
 const FEEDBACK_URL = 'https://t.me/bekzodart'
 
@@ -51,6 +54,27 @@ function DecimalInput({ value, onCommit, className = 'input input--sm num' }) {
   )
 }
 
+// Half-hour time picker styled like the app's other selects (native <input type=time>
+// renders inconsistently across the webviews this PWA runs in).
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = String(Math.floor(i / 2)).padStart(2, '0')
+  return `${h}:${i % 2 ? '30' : '00'}`
+})
+
+function TimeSelect({ value, onChange }) {
+  // Keep an off-grid saved value (e.g. 20:45) selectable instead of silently resetting
+  const options = TIME_OPTIONS.includes(value) ? TIME_OPTIONS : [value, ...TIME_OPTIONS]
+  return (
+    <select
+      className="input input--select input--time num"
+      value={value}
+      onChange={e => { haptics.light(); onChange(e.target.value) }}
+    >
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  )
+}
+
 // Settings card with a "?" help toggle in the top-right corner
 function SettingsCard({ title, help, extra, children }) {
   const [open, setOpen] = useState(false)
@@ -80,7 +104,7 @@ function SettingsCard({ title, help, extra, children }) {
 export default function Settings() {
   const {
     t, lang, intl, theme, setLang, setTheme,
-    settings, setSettings, reloadAll,
+    settings, setSettings, reloadAll, formatMoney,
   } = useApp()
   const currentYear = parseInt(todayStr().slice(0, 4))
   const [copied, setCopied] = useState(false)
@@ -90,6 +114,36 @@ export default function Settings() {
 
   const patch = (fn) => setSettings(s => fn(s))
   const patchAllowances = (key, val) => patch(s => ({ ...s, allowances: { ...s.allowances, [key]: val } }))
+  const patchNight = (key, val) => patch(s => ({ ...s, nightShift: { ...(s.nightShift || {}), [key]: val } }))
+
+  // Night-shift values shown live, plus what they come to in money
+  const nightPremium = settings.nightShift?.premiumPercent ?? 50
+  const nightStart = settings.nightShift?.start ?? '22:00'
+  const nightEnd = settings.nightShift?.end ?? '06:00'
+  const winStart = settings.nightShift?.windowStart ?? '22:00'
+  const winEnd = settings.nightShift?.windowEnd ?? '06:00'
+  const breakMinutes = settings.nightShift?.breakMinutes ?? 30
+  const shiftHours = shiftPaidHoursOf(settings.nightShift || {})
+  const autoOt = autoOvertimeOf(settings.nightShift || {})
+  const nightHours = paidNightHoursOf(settings.nightShift || {})
+  const segments = shiftSegments(nightStart, nightEnd, winStart, winEnd)
+  const nightOtMultiplier = settings.nightShift?.overtimeMultiplier ?? (1.5 + nightPremium / 100)
+  const hourlyRate = getHourlyRate(settings, currentYear)
+
+  // Individual (custom) allowances added by the user
+  const customAllowances = settings.allowances.custom || []
+  const patchCustom = (fn) =>
+    patch(s => ({ ...s, allowances: { ...s.allowances, custom: fn(s.allowances.custom || []) } }))
+  const addAllowance = () => {
+    haptics.light()
+    patchCustom(list => [...list, { id: uid(), name: '', amount: 0 }])
+  }
+  const updateAllowance = (id, key, val) =>
+    patchCustom(list => list.map(a => (a.id === id ? { ...a, [key]: val } : a)))
+  const removeAllowance = (id) => {
+    haptics.light()
+    patchCustom(list => list.filter(a => a.id !== id))
+  }
 
   const payType = settings.payType || 'hourly'
   const payLabels = {
@@ -302,13 +356,28 @@ export default function Settings() {
 
       {/* Allowances */}
       <SettingsCard title={t.settings.allowances} help={t.help.allowances}>
-        {[['job', t.settings.job], ['seniority', t.settings.seniority], ['vacationTotal', t.settings.vacationTotal]].map(([key, label]) => (
-          <div key={key} className="settings-row">
-            <span className="settings-row__label">{label}</span>
-            <DecimalInput value={settings.allowances[key] ?? 0} className="input input--rate num"
-              onCommit={v => patchAllowances(key, v)} />
+        <div className="settings-row">
+          <span className="settings-row__label">{t.settings.vacationTotal}</span>
+          <DecimalInput value={settings.allowances.vacationTotal ?? 0} className="input input--rate num"
+            onCommit={v => patchAllowances('vacationTotal', v)} />
+        </div>
+        {customAllowances.map((a, i) => (
+          <div key={a.id} className={`settings-row settings-row--rate${i === 0 ? ' settings-row--gap' : ''}`}>
+            <input
+              className="input input--grow"
+              type="text"
+              value={a.name}
+              placeholder={t.settings.allowanceName}
+              onChange={e => updateAllowance(a.id, 'name', e.target.value)}
+            />
+            <DecimalInput value={a.amount ?? 0} className="input input--rate num"
+              onCommit={v => updateAllowance(a.id, 'amount', v)} />
+            <button type="button" className="icon-btn" aria-label="✕"
+              onClick={() => removeAllowance(a.id)}>✕</button>
           </div>
         ))}
+        <button type="button" className="btn-secondary btn-secondary--center settings-row--gap"
+          onClick={addAllowance}>{t.settings.addAllowance}</button>
       </SettingsCard>
 
       {/* Quarterly bonus */}
@@ -350,22 +419,104 @@ export default function Settings() {
         )}
       </SettingsCard>
 
-      {/* Night shift */}
+      {/* Night shift — schedule + premium; the app derives the rest from the law */}
       <SettingsCard title={t.settings.nightShift} help={t.help.nightShift}>
-        {[
-          { key: 'bonusMultiplier', label: t.settings.nightBonusMultiplier, hint: t.settings.nightBonusHint },
-          { key: 'bonusHours', label: t.settings.nightBonusHours },
-          { key: 'overtimeMultiplier', label: t.settings.nightOvertimeMultiplier, hint: t.settings.nightOvertimeHint },
-        ].map(({ key, label, hint }) => (
-          <div key={key} className="settings-row">
-            <span className="settings-row__label settings-row__label--stack">
-              {label}
-              {hint && <small className="muted">{hint}</small>}
-            </span>
-            <DecimalInput value={settings.nightShift?.[key] ?? 0} className="input input--rate num"
-              onCommit={v => patch(s => ({ ...s, nightShift: { ...(s.nightShift || {}), [key]: v } }))} />
+        <div className="settings-row">
+          <span className="settings-row__label">{t.settings.nightShiftTime}</span>
+          <div className="time-range">
+            <TimeSelect value={nightStart} onChange={v => patchNight('start', v)} />
+            <span className="time-range__dash">—</span>
+            <TimeSelect value={nightEnd} onChange={v => patchNight('end', v)} />
           </div>
-        ))}
+        </div>
+
+        {/* Which part of the shift the law counts as night, at a glance */}
+        <div className="shift-bar" aria-hidden="true">
+          {segments.map((seg, i) => (
+            <div
+              key={i}
+              className={`shift-bar__seg${seg.night ? ' shift-bar__seg--night' : ''}`}
+              style={{ flexGrow: seg.hours }}
+            >
+              {seg.hours >= 1.5 ? `${seg.hours}${t.dashboard.hoursSuffix}` : ''}
+            </div>
+          ))}
+        </div>
+        <div className="shift-bar__legend">
+          <span>{nightStart}</span>
+          <span className="muted">{t.settings.nightLegend}</span>
+          <span>{nightEnd}</span>
+        </div>
+
+        <div className="settings-row">
+          <span className="settings-row__label settings-row__label--stack">
+            {t.settings.breakMinutes}
+            <small className="muted">{t.settings.breakHint}</small>
+          </span>
+          <DecimalInput value={breakMinutes} className="input input--rate num"
+            onCommit={v => patchNight('breakMinutes', v)} />
+        </div>
+
+        {/* Which span counts as night — legal default, but employers differ */}
+        <div className="settings-row">
+          <span className="settings-row__label settings-row__label--stack">
+            {t.settings.nightWindow}
+            <small className="muted">{t.settings.nightWindowHint}</small>
+          </span>
+          <div className="time-range">
+            <TimeSelect value={winStart} onChange={v => patchNight('windowStart', v)} />
+            <span className="time-range__dash">—</span>
+            <TimeSelect value={winEnd} onChange={v => patchNight('windowEnd', v)} />
+          </div>
+        </div>
+
+        <div className="settings-row settings-row--info">
+          <span className="settings-row__label">{t.settings.shiftLength}</span>
+          <span className="muted num">{shiftHours} {t.dashboard.hoursSuffix}</span>
+        </div>
+        {autoOt > 0 && (
+          <div className="settings-row settings-row--info">
+            <span className="settings-row__label settings-row__label--stack">
+              {t.settings.autoOvertime}
+              <small className="muted">{t.settings.autoOvertimeHint}</small>
+            </span>
+            <span className="num night-hours">{autoOt} {t.dashboard.hoursSuffix}</span>
+          </div>
+        )}
+        <div className="settings-row settings-row--info">
+          <span className="settings-row__label">
+            {t.settings.nightHoursCounted} <span className="num">({winStart}–{winEnd})</span>
+          </span>
+          <span className="num night-hours">{nightHours} {t.dashboard.hoursSuffix}</span>
+        </div>
+        {nightHours === 0 && <p className="card-help">{t.settings.nightNoneHint}</p>}
+        <div className="settings-row">
+          <span className="settings-row__label settings-row__label--stack">
+            {t.settings.nightPremium}
+            <small className="muted">{t.settings.nightPremiumHint}</small>
+          </span>
+          <DecimalInput value={nightPremium} className="input input--rate num"
+            onCommit={v => patchNight('premiumPercent', v)} />
+        </div>
+        {hourlyRate > 0 && nightHours > 0 && (
+          <div className="money-preview">
+            +{formatMoney(Math.round(hourlyRate * (nightPremium / 100) * nightHours))} {t.settings.perShift}
+            <small className="muted"> · {formatMoney(Math.round(hourlyRate * (nightPremium / 100)))} {t.settings.perHour}</small>
+          </div>
+        )}
+        <div className="settings-row">
+          <span className="settings-row__label settings-row__label--stack">
+            {t.settings.nightOtRate}
+            <small className="muted">{t.settings.nightOtHint}</small>
+          </span>
+          <DecimalInput value={nightOtMultiplier} className="input input--rate num"
+            onCommit={v => patchNight('overtimeMultiplier', v)} />
+        </div>
+        {hourlyRate > 0 && (
+          <div className="money-preview">
+            {formatMoney(Math.round(hourlyRate * nightOtMultiplier))} {t.settings.perOtHour}
+          </div>
+        )}
       </SettingsCard>
 
       {/* Public holidays */}
@@ -375,13 +526,26 @@ export default function Settings() {
           ['weekdayOvertime', t.settings.holidayWeekdayOT],
           ['weekendBase', t.settings.holidayWeekendBase],
           ['weekendOvertime', t.settings.holidayWeekendOT],
-        ].map(([key, label]) => (
-          <div key={key} className="settings-row">
-            <span className="settings-row__label">{label}</span>
-            <DecimalInput value={settings.holidayRates?.[key] ?? 0} className="input input--rate num"
-              onCommit={v => patch(s => ({ ...s, holidayRates: { ...s.holidayRates, [key]: v } }))} />
-          </div>
-        ))}
+        ].map(([key, label]) => {
+          const val = settings.holidayRates?.[key] ?? 0
+          const isOt = key.endsWith('Overtime')
+          return (
+            <div key={key}>
+              <div className="settings-row">
+                <span className="settings-row__label">{label}</span>
+                <DecimalInput value={val} className="input input--rate num"
+                  onCommit={v => patch(s => ({ ...s, holidayRates: { ...s.holidayRates, [key]: v } }))} />
+              </div>
+              {hourlyRate > 0 && (
+                <div className="money-preview">
+                  {isOt
+                    ? `${formatMoney(Math.round(hourlyRate * val))} ${t.settings.perOtHour}`
+                    : `+${formatMoney(Math.round(hourlyRate * 8 * val))} ${t.settings.perDay}`}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </SettingsCard>
 
       {/* Data: export / import — file-based plus copy/paste as text for
