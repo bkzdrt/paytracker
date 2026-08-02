@@ -142,8 +142,17 @@ export default function DayEditor({ dateStr, onClose }) {
           <div className="ot-section">
             <span className="field-row__label">
               {t.dayEditor.overtime}
-              {type === 'night' && autoOt > 0 && (
-                <small className="muted"> · {t.dayEditor.otFromShift.replace('{h}', autoOt)}</small>
+              {/* The schedule's own overtime is an offer, not a statement: it
+                  used to render as plain text next to a field still reading 0h,
+                  so it looked like hours that were already counted. */}
+              {type === 'night' && autoOt > 0 && overtime !== autoOt && (
+                <button
+                  type="button"
+                  className="ot-suggest"
+                  onClick={() => { haptics.light(); setOvertime(autoOt) }}
+                >
+                  {t.dayEditor.otFromShift.replace('{h}', autoOt)}
+                </button>
               )}
             </span>
             <div className="ot-controls">

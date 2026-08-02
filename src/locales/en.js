@@ -42,7 +42,7 @@ export default {
   },
   dayEditor: {
     overtime: 'Overtime',
-    otFromShift: 'from schedule: {h} h',
+    otFromShift: 'apply {h} h from schedule',
     note: 'Note (optional)',
     save: 'Save',
     close: 'Close',

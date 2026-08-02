@@ -42,7 +42,7 @@ export default {
   },
   dayEditor: {
     overtime: 'Переработка',
-    otFromShift: 'из графика: {h} ч',
+    otFromShift: 'поставить {h} ч из графика',
     note: 'Заметка (необязательно)',
     save: 'Сохранить',
     close: 'Закрыть',
