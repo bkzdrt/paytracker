@@ -53,6 +53,18 @@ export function useSheet(onClose) {
     return () => { body.style.overflow = previous }
   }, [])
 
+  // While a drag is running the sheet moves by transform, so the browser must
+  // not also scroll the content: on iOS that shows up as the list rubber-banding
+  // away from the sheet's top edge, leaving a gap above the handle. React's own
+  // touchmove is passive, so preventDefault needs a native non-passive listener.
+  useEffect(() => {
+    const el = sheetRef.current
+    if (!el) return
+    const block = (e) => { if (dragging.current && e.cancelable) e.preventDefault() }
+    el.addEventListener('touchmove', block, { passive: false })
+    return () => el.removeEventListener('touchmove', block)
+  }, [])
+
   const overlayProps = {
     className: `sheet-overlay${closing ? ' sheet-overlay--closing' : ''}`,
     onClick: (e) => { if (e.target === e.currentTarget) close() },

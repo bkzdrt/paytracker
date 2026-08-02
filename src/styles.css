@@ -821,6 +821,8 @@ a { color: inherit; text-decoration: none; }
   width: min(100%, 560px);
   max-height: 88dvh;
   overflow-y: auto;
+  /* Don't hand the scroll on to the page, and don't bounce past the ends */
+  overscroll-behavior: contain;
   background: var(--surface);
   border-radius: 20px 20px 0 0;
   box-shadow: var(--shadow-sheet);

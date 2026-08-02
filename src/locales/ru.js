@@ -23,6 +23,7 @@ export default {
     yearTotal: 'Итого за год',
     casualPay: 'Разовые',
     hoursSuffix: 'ч',
+    overtimeShort: 'Переработка',
     statEmpty: 'Таких дней в этом месяце нет',
   },
   month: {

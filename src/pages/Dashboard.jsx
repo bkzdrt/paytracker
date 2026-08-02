@@ -89,7 +89,15 @@ export default function Dashboard({ onGoToMonth }) {
     { key: 'worked', label: t.dashboard.workedDays, value: stats.worked % 1 === 0 ? stats.worked : stats.worked.toFixed(1) },
     { key: 'off', label: t.dashboard.daysOff, value: stats.off },
     { key: 'vacation', label: t.dashboard.vacation, value: stats.vacation % 1 === 0 ? stats.vacation : stats.vacation.toFixed(1) },
-    { key: 'overtime', label: t.dashboard.overtime, value: stats.overtime % 1 === 0 ? stats.overtime : stats.overtime.toFixed(1) },
+    // The sheet lists days, but this stat counts hours — it needs its unit
+    // spelled out, or "· 33" above eleven rows reads as a broken count.
+    {
+      key: 'overtime',
+      label: t.dashboard.overtime,
+      value: stats.overtime % 1 === 0 ? stats.overtime : stats.overtime.toFixed(1),
+      sheetLabel: t.dashboard.overtimeShort,
+      unit: t.dashboard.hoursSuffix,
+    },
     { key: 'holidays', label: t.dashboard.holidays, value: stats.holidays },
   ]
 
@@ -136,12 +144,15 @@ export default function Dashboard({ onGoToMonth }) {
       )}
 
       <div className="stats-row">
-        {statChips.map(({ key, label, value }) => (
+        {statChips.map(({ key, label, value, sheetLabel, unit }) => (
           <button
             key={key}
             type="button"
             className="stat-chip"
-            onClick={() => { haptics.light(); setStatDetail({ key, label, value }) }}
+            onClick={() => {
+              haptics.light()
+              setStatDetail({ key, label: sheetLabel || label, value, unit })
+            }}
           >
             <span className="stat-chip__value num">{value}</span>
             <span className="stat-chip__label">{label}</span>
@@ -195,6 +206,7 @@ export default function Dashboard({ onGoToMonth }) {
           statKey={statDetail.key}
           title={statDetail.label}
           value={statDetail.value}
+          unit={statDetail.unit}
           monthDayKeys={monthDayKeys}
           days={days}
           onClose={() => setStatDetail(null)}

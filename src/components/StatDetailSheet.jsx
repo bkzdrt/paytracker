@@ -35,7 +35,7 @@ function rowsFor(statKey, monthDayKeys, days, t) {
 }
 
 // Bottom sheet listing exactly which days make up a dashboard stat.
-export default function StatDetailSheet({ statKey, title, value, monthDayKeys, days, onClose }) {
+export default function StatDetailSheet({ statKey, title, value, unit, monthDayKeys, days, onClose }) {
   const { t, intl } = useApp()
   const rows = rowsFor(statKey, monthDayKeys, days, t)
   const { overlayProps, sheetProps } = useSheet(onClose)
@@ -49,7 +49,7 @@ export default function StatDetailSheet({ statKey, title, value, monthDayKeys, d
     <div {...overlayProps}>
       <div {...sheetProps} role="dialog" aria-modal="true" aria-label={title}>
         <div className="sheet__handle" />
-        <div className="sheet__date">{title} · <span className="num">{value ?? rows.length}</span></div>
+        <div className="sheet__date">{title} · <span className="num">{value ?? rows.length}</span>{unit ? ` ${unit}` : ''}</div>
 
         {rows.length === 0 ? (
           <p className="stat-detail__empty">{t.dashboard.statEmpty}</p>

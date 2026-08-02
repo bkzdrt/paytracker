@@ -23,6 +23,7 @@ export default {
     yearTotal: 'Year total',
     casualPay: 'Casual',
     hoursSuffix: 'h',
+    overtimeShort: 'Overtime',
     statEmpty: 'No such days this month',
   },
   month: {
