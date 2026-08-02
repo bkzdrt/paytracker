@@ -45,6 +45,7 @@ export default {
     otFromShift: 'из графика: {h} ч',
     note: 'Заметка (необязательно)',
     save: 'Сохранить',
+    close: 'Закрыть',
     clearDay: 'Удалить запись',
     confirmClear: 'Удалить данные за этот день?',
     gross: 'Начислено',

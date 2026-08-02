@@ -45,6 +45,7 @@ export default {
     otFromShift: 'from schedule: {h} h',
     note: 'Note (optional)',
     save: 'Save',
+    close: 'Close',
     clearDay: 'Clear day',
     confirmClear: 'Delete data for this day?',
     gross: 'Gross',

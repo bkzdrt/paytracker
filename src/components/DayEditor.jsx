@@ -76,8 +76,10 @@ export default function DayEditor({ dateStr, onClose }) {
   return (
     <div {...overlayProps}>
       <div {...sheetProps} role="dialog" aria-modal="true" aria-label={dateLabel}>
-        <div className="sheet__handle" />
-        <div className="sheet__date">{dateLabel}</div>
+        <div className="sheet__head">
+          <div className="sheet__date">{dateLabel}</div>
+          <button type="button" className="icon-btn" aria-label={t.dayEditor.close} onClick={close}>✕</button>
+        </div>
 
         <div className="chips-row">
           {DAY_TYPES.map(dt => (

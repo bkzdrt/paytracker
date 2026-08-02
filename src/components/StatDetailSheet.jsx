@@ -38,7 +38,7 @@ function rowsFor(statKey, monthDayKeys, days, t) {
 export default function StatDetailSheet({ statKey, title, value, unit, monthDayKeys, days, onClose }) {
   const { t, intl } = useApp()
   const rows = rowsFor(statKey, monthDayKeys, days, t)
-  const { overlayProps, sheetProps } = useSheet(onClose)
+  const { close, overlayProps, sheetProps } = useSheet(onClose)
 
   const weekday = (dateStr) => {
     const wd = new Date(dateStr).toLocaleDateString(intl, { weekday: 'short' })
@@ -48,8 +48,12 @@ export default function StatDetailSheet({ statKey, title, value, unit, monthDayK
   return (
     <div {...overlayProps}>
       <div {...sheetProps} role="dialog" aria-modal="true" aria-label={title}>
-        <div className="sheet__handle" />
-        <div className="sheet__date">{title} · <span className="num">{value ?? rows.length}</span>{unit ? ` ${unit}` : ''}</div>
+        <div className="sheet__head">
+          <div className="sheet__date">
+            {title} · <span className="num">{value ?? rows.length}</span>{unit ? ` ${unit}` : ''}
+          </div>
+          <button type="button" className="icon-btn" aria-label={t.dayEditor.close} onClick={close}>✕</button>
+        </div>
 
         {rows.length === 0 ? (
           <p className="stat-detail__empty">{t.dashboard.statEmpty}</p>
