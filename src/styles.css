@@ -809,9 +809,33 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  /* Own compositing layer. Without it iOS repaints the page under the overlay
+     in tiles when it is removed, and the dim leaves the screen in chunks —
+     middle first, the Dynamic Island strip last. */
+  transform: translateZ(0);
+  will-change: opacity;
+  animation: fade-in 0.18s ease-out;
+}
+
+/* Fades to transparent before it is unmounted, so the repaint underneath has
+   nothing left to reveal */
+.sheet-overlay--closing {
+  animation: fade-out 0.2s ease-in forwards;
+  pointer-events: none;
 }
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+@keyframes sheet-up {
+  from { transform: translateY(40%); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes sheet-down {
+  from { transform: none; opacity: 1; }
+  to { transform: translateY(30%); opacity: 0; }
+}
 
 .sheet {
   width: min(100%, 560px);
@@ -826,7 +850,10 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   gap: 13px;
+  animation: sheet-up 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
+
+.sheet--closing { animation: sheet-down 0.2s ease-in forwards; }
 
 .sheet__head {
   display: flex;
