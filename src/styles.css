@@ -1185,12 +1185,114 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   font-variant-numeric: tabular-nums;
   background: var(--surface-2);
   color: var(--muted);
+  transition: flex-grow 0.15s ease-out;
 }
 
 .shift-bar__seg--night {
   background: var(--dot-night, #4b56b8);
   color: #fff;
   font-weight: 600;
+}
+
+/* Unpaid break — a gap in the bar, so its position reads at a glance */
+.shift-bar__seg--break {
+  background: repeating-linear-gradient(
+    -45deg, var(--border) 0 4px, transparent 4px 8px
+  );
+  color: transparent;
+}
+
+/* The stretch past the standard day, on top of work/night colouring */
+.shift-bar__seg--ot {
+  box-shadow: inset 0 -3px 0 var(--dot-casual, #d08a2c);
+}
+
+/* Shift ends, dragged */
+.shift-slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shift-slider__label {
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 54px;
+}
+
+.shift-slider__value {
+  font-size: 13px;
+  min-width: 44px;
+  text-align: end;
+}
+
+.shift-slider input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--dot-night, #4b56b8);
+  height: 28px; /* comfortable touch target */
+}
+
+.shift-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.shift-key li { display: flex; align-items: center; gap: 5px; }
+
+.shift-key__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.shift-key__dot--work { background: var(--surface-2); border: 1px solid var(--border); }
+.shift-key__dot--night { background: var(--dot-night, #4b56b8); }
+.shift-key__dot--ot { background: var(--dot-casual, #d08a2c); }
+.shift-key__dot--break {
+  background: repeating-linear-gradient(-45deg, var(--border) 0 3px, transparent 3px 6px);
+  border: 1px solid var(--border);
+}
+
+.shift-editor { display: flex; flex-direction: column; gap: 9px; }
+
+/* Break rows */
+.break-row { display: flex; align-items: center; gap: 7px; }
+.break-row__unit { font-size: 12.5px; }
+
+/* By-law / custom toggle */
+.mode-switch {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.mode-switch__btn {
+  flex: 1;
+  padding: 7px 8px;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 3px);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mode-switch__btn--active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .shift-bar__legend {

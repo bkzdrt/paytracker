@@ -25,7 +25,10 @@ export const DEFAULT_SETTINGS = {
   nightShift: {
     start: '22:00', end: '06:00',
     windowStart: '22:00', windowEnd: '06:00', // legal night window, editable
-    breakMinutes: 30,                         // unpaid break, comes off night hours
+    // Unpaid breaks with a start time: a break inside the night window costs
+    // night hours, one outside it does not.
+    breaks: [{ start: '22:00', minutes: 30 }],
+    mode: 'law',                              // 'law' | 'custom'
     premiumPercent: 50, overtimeMultiplier: 1.5,
   },
   newYearPromptShown: String(new Date().getFullYear()),

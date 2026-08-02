@@ -63,44 +63,89 @@ export function nightHoursOf(start, end, windowStart = '22:00', windowEnd = '06:
   return round2(mins / 60)
 }
 
-// Night hours actually paid the premium: the break is unpaid, so it comes off.
-// Memoised on the schedule — this runs per logged day, and the year chart walks
-// twelve months at a time, so recomputing the minute scan each call adds up.
-let nightHoursMemo = { key: null, hours: 0 }
-export function paidNightHoursOf(ns = {}) {
-  const start = ns.start ?? '22:00', end = ns.end ?? '06:00'
-  const ws = ns.windowStart ?? '22:00', we = ns.windowEnd ?? '06:00'
-  const brk = ns.breakMinutes || 0
-  const key = `${start}|${end}|${ws}|${we}|${brk}`
-  if (nightHoursMemo.key === key) return nightHoursMemo.hours
-  const hours = Math.max(0, round2(nightHoursOf(start, end, ws, we) - brk / 60))
-  nightHoursMemo = { key, hours }
-  return hours
+export const minToTime = (m) => {
+  const d = ((Math.round(m) % 1440) + 1440) % 1440
+  return `${String(Math.floor(d / 60)).padStart(2, '0')}:${String(d % 60).padStart(2, '0')}`
 }
 
-// Paid length of the configured shift (clock time minus the unpaid break).
+// Breaks are stored with a start time, because where a break falls decides
+// whether it eats into night hours (근로기준법 §56 counts night work, and an
+// unpaid break inside 22:00–06:00 is not work). Legacy settings only kept a
+// duration; those are migrated on load, this is the safety net.
+function breaksOf(ns, shiftStart) {
+  const list = Array.isArray(ns.breaks)
+    ? ns.breaks
+    : (ns.breakMinutes ? [{ start: ns.start ?? '22:00', minutes: ns.breakMinutes }] : [])
+  return list
+    .filter(b => (b?.minutes || 0) > 0)
+    .map(b => {
+      let s = toMin(b.start)
+      while (s < shiftStart) s += 1440
+      return { from: s, to: s + b.minutes }
+    })
+}
+
+const inAnyBreak = (m, breaks) => breaks.some(b => m >= b.from && m < b.to)
+
+// One minute-by-minute pass over the shift; everything else is read off it.
+// Memoised on the schedule — this runs per logged day, and the year chart walks
+// twelve months at a time, so rescanning on each call adds up.
+let breakdownMemo = { key: null, value: null }
+export function shiftBreakdownOf(ns = {}) {
+  const key = JSON.stringify([ns.start, ns.end, ns.windowStart, ns.windowEnd, ns.breaks, ns.breakMinutes])
+  if (breakdownMemo.key === key) return breakdownMemo.value
+
+  const [s, e] = shiftRange(ns.start ?? '22:00', ns.end ?? '06:00')
+  const ws = toMin(ns.windowStart ?? '22:00'), we = toMin(ns.windowEnd ?? '06:00')
+  const breaks = breaksOf(ns, s)
+
+  let paid = 0, night = 0, pause = 0
+  const segments = []
+  for (let m = s; m < e; m++) {
+    const isBreak = inAnyBreak(m, breaks)
+    const isNight = inWindow(m, ws, we)
+    const kind = isBreak ? 'break' : isNight ? 'night' : 'work'
+    if (isBreak) pause++
+    else { paid++; if (isNight) night++ }
+    const last = segments[segments.length - 1]
+    if (last && last.kind === kind) last.minutes++
+    else segments.push({ kind, minutes: 1 })
+  }
+
+  const value = {
+    spanHours: round2((e - s) / 60),
+    paidHours: round2(paid / 60),
+    nightHours: round2(night / 60),
+    breakHours: round2(pause / 60),
+    segments: segments.map(g => ({ kind: g.kind, hours: round2(g.minutes / 60) })),
+  }
+  breakdownMemo = { key, value }
+  return value
+}
+
+// Where a legacy duration-only break has to sit for the totals it used to
+// produce to stay identical: the first night minute of the shift (the old code
+// took the break off the night hours unconditionally), else the shift start.
+export function legacyBreakStart(ns = {}) {
+  const [s, e] = shiftRange(ns.start ?? '22:00', ns.end ?? '06:00')
+  const ws = toMin(ns.windowStart ?? '22:00'), we = toMin(ns.windowEnd ?? '06:00')
+  for (let m = s; m < e; m++) if (inWindow(m, ws, we)) return minToTime(m)
+  return ns.start ?? '22:00'
+}
+
+// Night hours that earn the premium — unpaid breaks inside the window come off.
+export function paidNightHoursOf(ns = {}) {
+  return shiftBreakdownOf(ns).nightHours
+}
+
+// Paid length of the configured shift (clock time minus the unpaid breaks).
 export function shiftPaidHoursOf(ns = {}) {
-  const total = shiftHoursOf(ns.start ?? '22:00', ns.end ?? '06:00')
-  return Math.max(0, round2(total - (ns.breakMinutes || 0) / 60))
+  return shiftBreakdownOf(ns).paidHours
 }
 
 // Overtime the shift itself implies: anything past the standard working day.
 export function autoOvertimeOf(ns = {}, standardHours = 8) {
   return Math.max(0, round2(shiftPaidHoursOf(ns) - standardHours))
-}
-
-// The shift split into consecutive day/night runs, for the settings timeline.
-export function shiftSegments(start, end, windowStart = '22:00', windowEnd = '06:00') {
-  const [s, e] = shiftRange(start, end)
-  const ws = toMin(windowStart), we = toMin(windowEnd)
-  const segments = []
-  for (let m = s; m < e; m++) {
-    const night = inWindow(m, ws, we)
-    const last = segments[segments.length - 1]
-    if (last && last.night === night) last.minutes++
-    else segments.push({ night, minutes: 1 })
-  }
-  return segments.map(seg => ({ night: seg.night, hours: round2(seg.minutes / 60) }))
 }
 
 // The night-work rates the payroll math runs on: a +50% (default) premium on

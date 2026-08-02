@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useApp } from '../app/store'
 import { DAY_TYPES, PAY_TYPES, EMPLOYMENT_TYPES } from '../domain/types'
 import {
-  getRate, getHourlyRate, shiftPaidHoursOf, shiftSegments, paidNightHoursOf, autoOvertimeOf,
+  getRate, getHourlyRate, shiftPaidHoursOf, shiftBreakdownOf, paidNightHoursOf, autoOvertimeOf,
 } from '../domain/payroll'
+import ShiftTimeline from '../components/ShiftTimeline'
 import { todayStr } from '../domain/dates'
 import { LANGUAGES } from '../i18n'
 import { haptics } from '../services/haptics'
@@ -122,13 +123,36 @@ export default function Settings() {
   const nightEnd = settings.nightShift?.end ?? '06:00'
   const winStart = settings.nightShift?.windowStart ?? '22:00'
   const winEnd = settings.nightShift?.windowEnd ?? '06:00'
-  const breakMinutes = settings.nightShift?.breakMinutes ?? 30
+  const nightMode = settings.nightShift?.mode ?? 'law'
+  const breaks = settings.nightShift?.breaks ?? []
+  const breakdown = shiftBreakdownOf(settings.nightShift || {})
   const shiftHours = shiftPaidHoursOf(settings.nightShift || {})
   const autoOt = autoOvertimeOf(settings.nightShift || {})
   const nightHours = paidNightHoursOf(settings.nightShift || {})
-  const segments = shiftSegments(nightStart, nightEnd, winStart, winEnd)
-  const nightOtMultiplier = settings.nightShift?.overtimeMultiplier ?? (1.5 + nightPremium / 100)
+  const nightOtFactor = settings.nightShift?.overtimeMultiplier ?? 1.5
   const hourlyRate = getHourlyRate(settings, currentYear)
+
+  // "By law" pins the statutory values; "custom" unlocks them for employers
+  // that count differently. Switching back to law restores the legal numbers.
+  const setNightMode = (mode) => patch(s => ({
+    ...s,
+    nightShift: {
+      ...(s.nightShift || {}),
+      mode,
+      ...(mode === 'law'
+        ? { windowStart: '22:00', windowEnd: '06:00', premiumPercent: 50, overtimeMultiplier: 1.5 }
+        : {}),
+    },
+  }))
+
+  const patchBreaks = (fn) =>
+    patch(s => ({ ...s, nightShift: { ...(s.nightShift || {}), breaks: fn(s.nightShift?.breaks ?? []) } }))
+  const patchBreak = (i, upd) => patchBreaks(list => list.map((b, k) => (k === i ? { ...b, ...upd } : b)))
+  const removeBreak = (i) => patchBreaks(list => list.filter((_, k) => k !== i))
+  const addBreak = () => {
+    haptics.light()
+    patchBreaks(list => [...list, { start: nightStart, minutes: 30 }])
+  }
 
   // Individual (custom) allowances added by the user
   const customAllowances = settings.allowances.custom || []
@@ -419,56 +443,67 @@ export default function Settings() {
         )}
       </SettingsCard>
 
-      {/* Night shift — schedule + premium; the app derives the rest from the law */}
+      {/* Night shift — law preset or a fully manual schedule */}
       <SettingsCard title={t.settings.nightShift} help={t.help.nightShift}>
-        <div className="settings-row">
-          <span className="settings-row__label">{t.settings.nightShiftTime}</span>
-          <div className="time-range">
-            <TimeSelect value={nightStart} onChange={v => patchNight('start', v)} />
-            <span className="time-range__dash">—</span>
-            <TimeSelect value={nightEnd} onChange={v => patchNight('end', v)} />
-          </div>
-        </div>
-
-        {/* Which part of the shift the law counts as night, at a glance */}
-        <div className="shift-bar" aria-hidden="true">
-          {segments.map((seg, i) => (
-            <div
-              key={i}
-              className={`shift-bar__seg${seg.night ? ' shift-bar__seg--night' : ''}`}
-              style={{ flexGrow: seg.hours }}
+        <div className="mode-switch" role="group" aria-label={t.settings.nightShift}>
+          {['law', 'custom'].map(m => (
+            <button
+              key={m}
+              type="button"
+              className={`mode-switch__btn${nightMode === m ? ' mode-switch__btn--active' : ''}`}
+              onClick={() => { haptics.light(); setNightMode(m) }}
             >
-              {seg.hours >= 1.5 ? `${seg.hours}${t.dashboard.hoursSuffix}` : ''}
-            </div>
+              {m === 'law' ? t.settings.modeLaw : t.settings.modeCustom}
+            </button>
           ))}
         </div>
-        <div className="shift-bar__legend">
-          <span>{nightStart}</span>
-          <span className="muted">{t.settings.nightLegend}</span>
-          <span>{nightEnd}</span>
-        </div>
 
-        <div className="settings-row">
+        <ShiftTimeline
+          t={t}
+          start={nightStart}
+          end={nightEnd}
+          breakdown={breakdown}
+          onChange={patchNight}
+        />
+
+        {/* Breaks carry a start time: one inside the night window costs night
+            hours, one outside it does not */}
+        <div className="settings-row settings-row--info">
           <span className="settings-row__label settings-row__label--stack">
-            {t.settings.breakMinutes}
+            {t.settings.breaks}
             <small className="muted">{t.settings.breakHint}</small>
           </span>
-          <DecimalInput value={breakMinutes} className="input input--rate num"
-            onCommit={v => patchNight('breakMinutes', v)} />
         </div>
-
-        {/* Which span counts as night — legal default, but employers differ */}
-        <div className="settings-row">
-          <span className="settings-row__label settings-row__label--stack">
-            {t.settings.nightWindow}
-            <small className="muted">{t.settings.nightWindowHint}</small>
-          </span>
-          <div className="time-range">
-            <TimeSelect value={winStart} onChange={v => patchNight('windowStart', v)} />
-            <span className="time-range__dash">—</span>
-            <TimeSelect value={winEnd} onChange={v => patchNight('windowEnd', v)} />
+        {breaks.map((b, i) => (
+          <div className="break-row" key={i}>
+            <TimeSelect value={b.start} onChange={v => patchBreak(i, { start: v })} />
+            <DecimalInput
+              value={b.minutes}
+              className="input input--sm num"
+              onCommit={v => patchBreak(i, { minutes: Math.max(0, v) })}
+            />
+            <span className="muted break-row__unit">{t.settings.minutesShort}</span>
+            <button type="button" className="icon-btn" aria-label="✕"
+              onClick={() => { haptics.light(); removeBreak(i) }}>✕</button>
           </div>
-        </div>
+        ))}
+        <button type="button" className="btn-ghost" onClick={addBreak}>
+          + {t.settings.addBreak}
+        </button>
+
+        {nightMode === 'custom' && (
+          <div className="settings-row">
+            <span className="settings-row__label settings-row__label--stack">
+              {t.settings.nightWindow}
+              <small className="muted">{t.settings.nightWindowHint}</small>
+            </span>
+            <div className="time-range">
+              <TimeSelect value={winStart} onChange={v => patchNight('windowStart', v)} />
+              <span className="time-range__dash">—</span>
+              <TimeSelect value={winEnd} onChange={v => patchNight('windowEnd', v)} />
+            </div>
+          </div>
+        )}
 
         <div className="settings-row settings-row--info">
           <span className="settings-row__label">{t.settings.shiftLength}</span>
@@ -490,31 +525,45 @@ export default function Settings() {
           <span className="num night-hours">{nightHours} {t.dashboard.hoursSuffix}</span>
         </div>
         {nightHours === 0 && <p className="card-help">{t.settings.nightNoneHint}</p>}
-        <div className="settings-row">
-          <span className="settings-row__label settings-row__label--stack">
-            {t.settings.nightPremium}
-            <small className="muted">{t.settings.nightPremiumHint}</small>
-          </span>
-          <DecimalInput value={nightPremium} className="input input--rate num"
-            onCommit={v => patchNight('premiumPercent', v)} />
-        </div>
+
+        {nightMode === 'law' ? (
+          <div className="settings-row settings-row--info">
+            <span className="settings-row__label settings-row__label--stack">
+              {t.settings.nightPremium}
+              <small className="muted">{t.settings.lawLocked}</small>
+            </span>
+            <span className="muted num">{nightPremium}%</span>
+          </div>
+        ) : (
+          <div className="settings-row">
+            <span className="settings-row__label settings-row__label--stack">
+              {t.settings.nightPremium}
+              <small className="muted">{t.settings.nightPremiumHint}</small>
+            </span>
+            <DecimalInput value={nightPremium} className="input input--rate num"
+              onCommit={v => patchNight('premiumPercent', v)} />
+          </div>
+        )}
         {hourlyRate > 0 && nightHours > 0 && (
           <div className="money-preview">
             +{formatMoney(Math.round(hourlyRate * (nightPremium / 100) * nightHours))} {t.settings.perShift}
             <small className="muted"> · {formatMoney(Math.round(hourlyRate * (nightPremium / 100)))} {t.settings.perHour}</small>
           </div>
         )}
-        <div className="settings-row">
-          <span className="settings-row__label settings-row__label--stack">
-            {t.settings.nightOtRate}
-            <small className="muted">{t.settings.nightOtHint}</small>
-          </span>
-          <DecimalInput value={nightOtMultiplier} className="input input--rate num"
-            onCommit={v => patchNight('overtimeMultiplier', v)} />
-        </div>
+
+        {nightMode === 'custom' && (
+          <div className="settings-row">
+            <span className="settings-row__label settings-row__label--stack">
+              {t.settings.nightOtRate}
+              <small className="muted">{t.settings.nightOtHint}</small>
+            </span>
+            <DecimalInput value={nightOtFactor} className="input input--rate num"
+              onCommit={v => patchNight('overtimeMultiplier', v)} />
+          </div>
+        )}
         {hourlyRate > 0 && (
           <div className="money-preview">
-            {formatMoney(Math.round(hourlyRate * nightOtMultiplier))} {t.settings.perOtHour}
+            {formatMoney(Math.round(hourlyRate * nightOtFactor))} {t.settings.perOtHour}
           </div>
         )}
       </SettingsCard>

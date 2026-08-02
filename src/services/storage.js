@@ -1,5 +1,6 @@
 import { normalizeType } from '../domain/types'
 import { DEFAULT_SETTINGS } from '../app/defaults'
+import { legacyBreakStart } from '../domain/payroll'
 
 // True when every value in a rates block is 0/undefined — i.e. never configured.
 const allZero = (obj) => !obj || Object.values(obj).every(v => !v)
@@ -141,8 +142,20 @@ function normalizeSettings(settings) {
   next.nightShift = {
     windowStart: '22:00',
     windowEnd: '06:00',
-    breakMinutes: 30,
+    mode: 'law',
     ...next.nightShift,
+  }
+  // v7: a break's position decides whether it eats night hours, so a bare
+  // duration is not enough. The legacy scalar is placed where it reproduces the
+  // previous totals exactly, and is dropped rather than left as a second source
+  // of truth (`breakMinutes` is destructured out, not deleted after the spread —
+  // re-adding it above would resurrect it on every load).
+  if (!Array.isArray(next.nightShift.breaks)) {
+    const { breakMinutes = 30, ...rest } = next.nightShift
+    next.nightShift = {
+      ...rest,
+      breaks: breakMinutes ? [{ start: legacyBreakStart(rest), minutes: breakMinutes }] : [],
+    }
   }
   return next
 }
