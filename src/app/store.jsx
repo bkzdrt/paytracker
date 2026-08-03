@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { getLocale, detectLanguage } from '../i18n'
 import * as db from '../services/storage'
+import { ensurePersistenceQuietly } from '../services/persist'
 import { DEFAULT_SETTINGS } from './defaults'
 
 const AppContext = createContext(null)
@@ -40,6 +41,10 @@ export function AppProvider({ children }) {
   useEffect(() => {
     document.documentElement.lang = prefs.lang
   }, [prefs.lang])
+
+  // Keep the browser from evicting our data under storage pressure. Silent —
+  // the Settings screen has the explicit ask for browsers that prompt.
+  useEffect(() => { ensurePersistenceQuietly() }, [])
 
   const setLang = useCallback((lang) => {
     setPrefs(p => { const next = { ...p, lang }; db.savePrefs(next); return next })

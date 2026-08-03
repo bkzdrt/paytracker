@@ -10,6 +10,7 @@ import { LANGUAGES } from '../i18n'
 import { haptics } from '../services/haptics'
 import { exportBackup, importJSON, backupText, restoreFromText } from '../services/backup'
 import { subscribeInstall, canInstall, promptInstall, isStandalone, isIOS } from '../services/install'
+import { isPersisted, requestPersistence, persistenceSupported } from '../services/persist'
 
 const DECIMAL_RE = /^[0-9]*[.,]?[0-9]*$/
 const uid = () => (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2, 10))
@@ -153,6 +154,45 @@ function InstallCard({ t }) {
         </>
       )}
     </SettingsCard>
+  )
+}
+
+// Storage durability row inside the Data card: says whether the browser has
+// promised not to evict our data, and lets the user ask for that promise.
+function StorageStatus({ t }) {
+  const [persisted, setPersisted] = useState(null) // null = still checking
+  const [denied, setDenied] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    isPersisted().then(p => { if (alive) setPersisted(p) })
+    return () => { alive = false }
+  }, [])
+
+  if (!persistenceSupported()) return null
+
+  async function ask() {
+    haptics.light()
+    const ok = await requestPersistence()
+    setPersisted(ok)
+    setDenied(!ok)
+    if (ok) haptics.success()
+  }
+
+  return (
+    <>
+      <div className="settings-row settings-row--info">
+        <span className="settings-row__label settings-row__label--stack">
+          {t.storage.title}
+          <small className="muted">{persisted ? t.storage.on : t.storage.off}</small>
+        </span>
+        {persisted === false && (
+          <button type="button" className="btn-secondary" onClick={ask}>{t.storage.protect}</button>
+        )}
+      </div>
+      {denied && <p className="card-help">{t.storage.denied}</p>}
+      <p className="muted card__note">{t.storage.hint}</p>
+    </>
   )
 }
 
@@ -690,6 +730,7 @@ export default function Settings() {
             </button>
           </div>
         )}
+        <StorageStatus t={t} />
       </SettingsCard>
 
       {/* Support */}

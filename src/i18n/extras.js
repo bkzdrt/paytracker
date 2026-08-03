@@ -12,6 +12,14 @@ export default {
       hintIOS: "Open the site in Safari, tap Share ⬆ and choose “Add to Home Screen”.",
       hintOther: "Open the browser menu (⋮) and choose “Install app” or “Add to Home screen”.",
     },
+    storage: {
+      title: "Storage",
+      on: "Protected — the browser will not clear it on its own.",
+      off: "The browser may clear it when the phone runs low on space.",
+      protect: "Protect",
+      denied: "The browser said no. Add PayTracker to the home screen — protection is usually granted automatically after that.",
+      hint: "Data is kept on this phone and never leaves it. Clearing the browser's site data still erases it, so export a backup from time to time.",
+    },
     help: {
       language: "Interface language and color theme. Auto follows your system setting.",
       profile: "The company name is shown on the home screen. Employment type is for your reference.",
@@ -45,6 +53,14 @@ export default {
       benefit: "Открывается на весь экран, без строки браузера, и работает офлайн.",
       hintIOS: "Откройте сайт в Safari, нажмите «Поделиться» ⬆ и выберите «На экран «Домой»».",
       hintOther: "Откройте меню браузера (⋮) и выберите «Установить приложение» или «Добавить на главный экран».",
+    },
+    storage: {
+      title: "Хранилище",
+      on: "Защищено — браузер не удалит данные сам.",
+      off: "Браузер может удалить данные при нехватке места.",
+      protect: "Защитить",
+      denied: "Браузер отказал. Добавьте PayTracker на главный экран — после этого защита обычно выдаётся автоматически.",
+      hint: "Данные хранятся на самом телефоне и никуда не отправляются. Очистка данных сайта в браузере всё равно их сотрёт — время от времени делайте экспорт.",
     },
     help: {
       language: "Язык интерфейса и тема оформления. «Авто» — как в системе.",
@@ -80,6 +96,14 @@ export default {
       hintIOS: "Safari에서 사이트를 열고 공유 ⬆ 를 누른 뒤 “홈 화면에 추가”를 선택하세요.",
       hintOther: "브라우저 메뉴(⋮)를 열고 “앱 설치” 또는 “홈 화면에 추가”를 선택하세요.",
     },
+    storage: {
+      title: "저장 공간",
+      on: "보호됨 — 브라우저가 임의로 삭제하지 않습니다.",
+      off: "저장 공간이 부족하면 브라우저가 삭제할 수 있습니다.",
+      protect: "보호하기",
+      denied: "브라우저가 거부했습니다. PayTracker를 홈 화면에 추가하면 보통 자동으로 보호됩니다.",
+      hint: "데이터는 이 휴대폰에만 저장되며 외부로 전송되지 않습니다. 브라우저의 사이트 데이터를 지우면 삭제되니 가끔 내보내기로 백업하세요.",
+    },
     help: {
       language: "인터페이스 언어와 테마입니다. 자동은 시스템 설정을 따릅니다.",
       profile: "회사명은 홈 화면에 표시됩니다. 고용 형태는 참고용입니다.",
@@ -113,6 +137,14 @@ export default {
       benefit: "Brauzer satrisiz to'liq ekranda ochiladi va oflayn ishlaydi.",
       hintIOS: "Saytni Safari'da oching, «Ulashish» ⬆ ni bosing va «Bosh ekranga qo'shish»ni tanlang.",
       hintOther: "Brauzer menyusini (⋮) oching va «Ilovani o'rnatish» yoki «Bosh ekranga qo'shish»ni tanlang.",
+    },
+    storage: {
+      title: "Xotira",
+      on: "Himoyalangan — brauzer ma'lumotlarni o'zi o'chirmaydi.",
+      off: "Joy yetmasa, brauzer ma'lumotlarni o'chirishi mumkin.",
+      protect: "Himoyalash",
+      denied: "Brauzer rad etdi. PayTracker'ni bosh ekranga qo'shing — shundan so'ng himoya odatda avtomatik beriladi.",
+      hint: "Ma'lumotlar shu telefonda saqlanadi va hech qayerga yuborilmaydi. Brauzerdagi sayt ma'lumotlarini tozalash ularni baribir o'chiradi — vaqti-vaqti bilan eksport qiling.",
     },
     help: {
       language: "Interfeys tili va mavzu. Avto — tizim sozlamasiga mos.",
@@ -148,6 +180,14 @@ export default {
       hintIOS: "用 Safari 打开网站，点按“分享”⬆，然后选择“添加到主屏幕”。",
       hintOther: "打开浏览器菜单（⋮），选择“安装应用”或“添加到主屏幕”。",
     },
+    storage: {
+      title: "存储",
+      on: "已保护——浏览器不会自行清除。",
+      off: "手机空间不足时，浏览器可能清除数据。",
+      protect: "保护",
+      denied: "浏览器拒绝了。请将 PayTracker 添加到主屏幕，之后通常会自动获得保护。",
+      hint: "数据保存在本机，不会上传。清除浏览器的网站数据仍会删除它们，请定期导出备份。",
+    },
     help: {
       language: "界面语言和主题。“自动”跟随系统设置。",
       profile: "公司名称显示在首页。用工形式仅供参考。",
@@ -181,6 +221,14 @@ export default {
       benefit: "Mở toàn màn hình, không có thanh trình duyệt, và hoạt động ngoại tuyến.",
       hintIOS: "Mở trang trong Safari, nhấn Chia sẻ ⬆ rồi chọn “Thêm vào MH chính”.",
       hintOther: "Mở menu trình duyệt (⋮) và chọn “Cài đặt ứng dụng” hoặc “Thêm vào màn hình chính”.",
+    },
+    storage: {
+      title: "Bộ nhớ",
+      on: "Được bảo vệ — trình duyệt sẽ không tự xóa.",
+      off: "Trình duyệt có thể xóa khi máy sắp hết dung lượng.",
+      protect: "Bảo vệ",
+      denied: "Trình duyệt đã từ chối. Hãy thêm PayTracker vào màn hình chính — sau đó việc bảo vệ thường được cấp tự động.",
+      hint: "Dữ liệu được lưu trên điện thoại này và không gửi đi đâu. Xóa dữ liệu trang web trong trình duyệt vẫn xóa chúng, nên thỉnh thoảng hãy xuất bản sao lưu.",
     },
     help: {
       language: "Ngôn ngữ giao diện và chủ đề màu. Tự động theo cài đặt hệ thống.",
@@ -216,6 +264,14 @@ export default {
       hintIOS: "เปิดเว็บใน Safari แตะ แชร์ ⬆ แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”",
       hintOther: "เปิดเมนูเบราว์เซอร์ (⋮) แล้วเลือก “ติดตั้งแอป” หรือ “เพิ่มลงหน้าจอโฮม”",
     },
+    storage: {
+      title: "ที่เก็บข้อมูล",
+      on: "ได้รับการป้องกัน — เบราว์เซอร์จะไม่ลบเอง",
+      off: "เบราว์เซอร์อาจลบข้อมูลเมื่อพื้นที่เครื่องเหลือน้อย",
+      protect: "ป้องกัน",
+      denied: "เบราว์เซอร์ปฏิเสธ ลองเพิ่ม PayTracker ลงหน้าจอโฮม หลังจากนั้นมักได้รับการป้องกันอัตโนมัติ",
+      hint: "ข้อมูลเก็บอยู่ในเครื่องนี้และไม่ถูกส่งออกไปไหน การล้างข้อมูลเว็บไซต์ในเบราว์เซอร์จะลบข้อมูลทิ้ง จึงควรส่งออกสำรองไว้เป็นระยะ",
+    },
     help: {
       language: "ภาษาและธีมของแอป อัตโนมัติจะตามการตั้งค่าระบบ",
       profile: "ชื่อบริษัทแสดงบนหน้าหลัก ประเภทการจ้างงานมีไว้เพื่ออ้างอิง",
@@ -249,6 +305,14 @@ export default {
       benefit: "Terbuka layar penuh tanpa bilah browser dan bisa dipakai offline.",
       hintIOS: "Buka situs di Safari, ketuk Bagikan ⬆ lalu pilih “Tambahkan ke Layar Utama”.",
       hintOther: "Buka menu browser (⋮) lalu pilih “Pasang aplikasi” atau “Tambahkan ke layar utama”.",
+    },
+    storage: {
+      title: "Penyimpanan",
+      on: "Terlindungi — browser tidak akan menghapusnya sendiri.",
+      off: "Browser bisa menghapusnya saat ruang ponsel menipis.",
+      protect: "Lindungi",
+      denied: "Browser menolak. Tambahkan PayTracker ke layar utama — setelah itu perlindungan biasanya diberikan otomatis.",
+      hint: "Data disimpan di ponsel ini dan tidak dikirim ke mana pun. Menghapus data situs di browser tetap menghapusnya, jadi ekspor cadangan sesekali.",
     },
     help: {
       language: "Bahasa antarmuka dan tema. Otomatis mengikuti pengaturan sistem.",
@@ -284,6 +348,14 @@ export default {
       hintIOS: "Buksan ang site sa Safari, i-tap ang Share ⬆ at piliin ang “Add to Home Screen”.",
       hintOther: "Buksan ang menu ng browser (⋮) at piliin ang “Install app” o “Add to Home screen”.",
     },
+    storage: {
+      title: "Storage",
+      on: "Protektado — hindi ito basta buburahin ng browser.",
+      off: "Maaaring burahin ng browser kapag paubos na ang espasyo ng telepono.",
+      protect: "Protektahan",
+      denied: "Tumanggi ang browser. Idagdag ang PayTracker sa home screen — kadalasan ay awtomatiko nang naibibigay ang proteksyon pagkatapos.",
+      hint: "Nasa teleponong ito ang data at hindi ito ipinapadala kahit saan. Buburahin pa rin ito ng pag-clear ng site data sa browser, kaya mag-export ng backup paminsan-minsan.",
+    },
     help: {
       language: "Wika at tema ng app. Sinusunod ng Awto ang setting ng system.",
       profile: "Ang pangalan ng kumpanya ay makikita sa home. Ang uri ng trabaho ay pang-sanggunian.",
@@ -317,6 +389,14 @@ export default {
       benefit: "ဘရောက်ဇာဘားမပါဘဲ မျက်နှာပြင်အပြည့် ပွင့်ပြီး အင်တာနက်မလိုဘဲ အလုပ်လုပ်သည်။",
       hintIOS: "Safari တွင် ဆိုက်ကိုဖွင့်၍ မျှဝေရန် ⬆ ကိုနှိပ်ပြီး “ပင်မစာမျက်နှာသို့ ထည့်ရန်” ကို ရွေးပါ။",
       hintOther: "ဘရောက်ဇာမီနူး (⋮) ကိုဖွင့်၍ “အက်ပ်ထည့်သွင်းရန်” သို့မဟုတ် “ပင်မစာမျက်နှာသို့ ထည့်ရန်” ကို ရွေးပါ။",
+    },
+    storage: {
+      title: "သိမ်းဆည်းမှု",
+      on: "ကာကွယ်ထားပြီး — ဘရောက်ဇာက အလိုအလျောက် ဖျက်မည်မဟုတ်ပါ။",
+      off: "ဖုန်းနေရာလွတ် နည်းလာလျှင် ဘရောက်ဇာက ဖျက်ပစ်နိုင်သည်။",
+      protect: "ကာကွယ်ရန်",
+      denied: "ဘရောက်ဇာက ငြင်းပယ်သည်။ PayTracker ကို ပင်မစာမျက်နှာသို့ ထည့်ပါ — ထို့နောက် ကာကွယ်မှုကို အလိုအလျောက် ရလေ့ရှိသည်။",
+      hint: "ဒေတာများကို ဤဖုန်းထဲတွင်သာ သိမ်းထားပြီး မည်သည့်နေရာသို့မျှ မပို့ပါ။ ဘရောက်ဇာရှိ ဆိုက်ဒေတာကို ရှင်းလင်းလျှင် ပျက်သွားမည်ဖြစ်၍ အခါအားလျော်စွာ ထုတ်ယူသိမ်းထားပါ။",
     },
     help: {
       language: "အက်ပ်ဘာသာစကားနှင့် အသွင်အပြင်။ အလိုအလျောက်သည် စနစ်သတ်မှတ်ချက်အတိုင်း။",
@@ -352,6 +432,14 @@ export default {
       hintIOS: "បើកគេហទំព័រក្នុង Safari ចុច ចែករំលែក ⬆ រួចជ្រើស «បន្ថែមទៅអេក្រង់ដើម»។",
       hintOther: "បើកម៉ឺនុយកម្មវិធីរុករក (⋮) រួចជ្រើស «ដំឡើងកម្មវិធី» ឬ «បន្ថែមទៅអេក្រង់ដើម»។",
     },
+    storage: {
+      title: "ទំហំផ្ទុក",
+      on: "បានការពារ — កម្មវិធីរុករកនឹងមិនលុបដោយខ្លួនឯងទេ។",
+      off: "កម្មវិធីរុករកអាចលុប នៅពេលទូរស័ព្ទខ្វះទំហំ។",
+      protect: "ការពារ",
+      denied: "កម្មវិធីរុករកបានបដិសេធ។ សូមបន្ថែម PayTracker ទៅអេក្រង់ដើម — បន្ទាប់មកការការពារជាធម្មតាផ្ដល់ដោយស្វ័យប្រវត្តិ។",
+      hint: "ទិន្នន័យរក្សាទុកក្នុងទូរស័ព្ទនេះ ហើយមិនផ្ញើទៅណាទេ។ ការសម្អាតទិន្នន័យគេហទំព័រក្នុងកម្មវិធីរុករក នៅតែលុបវា ដូច្នេះសូមនាំចេញបម្រុងម្ដងម្កាល។",
+    },
     help: {
       language: "ភាសា និងរូបរាងកម្មវិធី។ ស្វ័យប្រវត្តិ តាមការកំណត់ប្រព័ន្ធ។",
       profile: "ឈ្មោះក្រុមហ៊ុនបង្ហាញនៅទំព័រដើម។ ប្រភេទការងារ គ្រាន់តែជាព័ត៌មាន។",
@@ -386,6 +474,14 @@ export default {
       hintIOS: "ເປີດເວັບໃນ Safari, ກົດ ແບ່ງປັນ ⬆ ແລ້ວເລືອກ «ເພີ່ມໃສ່ໜ້າຈໍຫຼັກ».",
       hintOther: "ເປີດເມນູບຣາວເຊີ (⋮) ແລ້ວເລືອກ «ຕິດຕັ້ງແອັບ» ຫຼື «ເພີ່ມໃສ່ໜ້າຈໍຫຼັກ».",
     },
+    storage: {
+      title: "ບ່ອນເກັບຂໍ້ມູນ",
+      on: "ໄດ້ຮັບການປົກປ້ອງ — ບຣາວເຊີຈະບໍ່ລຶບເອງ.",
+      off: "ບຣາວເຊີອາດລຶບຂໍ້ມູນເມື່ອເຄື່ອງມີບ່ອນຫວ່າງໜ້ອຍ.",
+      protect: "ປົກປ້ອງ",
+      denied: "ບຣາວເຊີປະຕິເສດ. ໃຫ້ເພີ່ມ PayTracker ໃສ່ໜ້າຈໍຫຼັກ — ຫຼັງຈາກນັ້ນມັກຈະໄດ້ຮັບການປົກປ້ອງອັດຕະໂນມັດ.",
+      hint: "ຂໍ້ມູນເກັບໄວ້ໃນໂທລະສັບນີ້ ແລະ ບໍ່ຖືກສົ່ງໄປໃສ. ການລ້າງຂໍ້ມູນເວັບໄຊໃນບຣາວເຊີຍັງລຶບມັນຢູ່ ດັ່ງນັ້ນຄວນສົ່ງອອກສຳຮອງເປັນບາງຄັ້ງ.",
+    },
     help: {
       language: "ພາສາ ແລະ ຮູບແບບແອັບ. ອັດຕະໂນມັດ ຕາມການຕັ້ງຄ່າລະບົບ.",
       profile: "ຊື່ບໍລິສັດສະແດງຢູ່ໜ້າຫຼັກ. ປະເພດການຈ້າງງານ ເປັນຂໍ້ມູນອ້າງອີງ.",
@@ -419,6 +515,14 @@ export default {
       benefit: "ब्राउजर पट्टीबिना पूर्ण स्क्रिनमा खुल्छ र अफलाइन पनि चल्छ।",
       hintIOS: "Safari मा साइट खोल्नुहोस्, सेयर ⬆ थिच्नुहोस् र “Add to Home Screen” छान्नुहोस्।",
       hintOther: "ब्राउजर मेनु (⋮) खोल्नुहोस् र “एप इन्स्टल गर्नुहोस्” वा “होम स्क्रिनमा थप्नुहोस्” छान्नुहोस्।",
+    },
+    storage: {
+      title: "भण्डारण",
+      on: "सुरक्षित — ब्राउजरले आफैँ मेट्दैन।",
+      off: "फोनमा ठाउँ कम भएमा ब्राउजरले डाटा मेट्न सक्छ।",
+      protect: "सुरक्षित गर्नुहोस्",
+      denied: "ब्राउजरले अस्वीकार गर्‍यो। PayTracker लाई होम स्क्रिनमा थप्नुहोस् — त्यसपछि सुरक्षा प्रायः स्वतः मिल्छ।",
+      hint: "डाटा यही फोनमा राखिन्छ र कतै पठाइँदैन। ब्राउजरको साइट डाटा हटाउँदा यो मेटिन्छ, त्यसैले बेलाबेला निर्यात गरेर ब्याकअप राख्नुहोस्।",
     },
     help: {
       language: "एपको भाषा र थिम। स्वतःले प्रणाली सेटिङ पछ्याउँछ।",
