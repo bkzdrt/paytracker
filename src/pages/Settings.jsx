@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useApp } from '../app/store'
 import { DAY_TYPES, PAY_TYPES, EMPLOYMENT_TYPES } from '../domain/types'
 import {
@@ -9,6 +9,7 @@ import { todayStr } from '../domain/dates'
 import { LANGUAGES } from '../i18n'
 import { haptics } from '../services/haptics'
 import { exportBackup, importJSON, backupText, restoreFromText } from '../services/backup'
+import { subscribeInstall, canInstall, promptInstall, isStandalone, isIOS } from '../services/install'
 
 const DECIMAL_RE = /^[0-9]*[.,]?[0-9]*$/
 const uid = () => (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2, 10))
@@ -99,6 +100,59 @@ function SettingsCard({ title, help, extra, children }) {
       {open && <p className="card-help">{help}</p>}
       {children}
     </section>
+  )
+}
+
+// "Add to home screen". Chrome-family browsers hand us a real install prompt;
+// everywhere else (iOS Safari, in-app webviews) we can only explain the steps.
+function InstallCard({ t }) {
+  const installable = useSyncExternalStore(subscribeInstall, canInstall, () => false)
+  const [standalone, setStandalone] = useState(isStandalone)
+  const [installed, setInstalled] = useState(false)
+
+  // Opening the app from the new shortcut switches display-mode in place
+  useEffect(() => {
+    const mq = window.matchMedia('(display-mode: standalone)')
+    const onChange = () => setStandalone(isStandalone())
+    mq.addEventListener('change', onChange)
+    const onInstalled = () => setInstalled(true)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      mq.removeEventListener('change', onChange)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+
+  // Already running from the home screen — nothing left to offer
+  if (standalone) return null
+
+  async function handleInstall() {
+    haptics.light()
+    const outcome = await promptInstall()
+    if (outcome === 'accepted') {
+      setInstalled(true)
+      haptics.success()
+    }
+  }
+
+  return (
+    <SettingsCard title={t.install.title} help={t.help.install}>
+      {installed ? (
+        <p className="muted card__note">{t.install.done}</p>
+      ) : installable ? (
+        <>
+          <button type="button" className="btn-primary" onClick={handleInstall}>
+            {t.install.action}
+          </button>
+          <p className="muted card__note">{t.install.benefit}</p>
+        </>
+      ) : (
+        <>
+          <p className="muted card__note">{isIOS() ? t.install.hintIOS : t.install.hintOther}</p>
+          <p className="muted card__note">{t.install.benefit}</p>
+        </>
+      )}
+    </SettingsCard>
   )
 }
 
@@ -281,6 +335,9 @@ export default function Settings() {
           </div>
         </div>
       </SettingsCard>
+
+      {/* Add to home screen — hidden once the app runs standalone */}
+      <InstallCard t={t} />
 
       {/* Profile: company + employment type */}
       <SettingsCard title={t.profile} help={t.help.profile}>
